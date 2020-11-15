@@ -1,2 +1,2 @@
-# IR-RUgle
+# IR-TREC-COVID
 TREC-COVID Search Engine
