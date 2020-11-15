@@ -1,2 +1,2 @@
-# IR-RUgle
-Google for RU research papers
+# IR-TREC COVID
+Corona Search Engine
