@@ -1,2 +1,3 @@
-# IR-TREC COVID
-Corona Search Engine
+# IR-TREC-COVID
+TREC-COVID Search Engine
+
