@@ -89,7 +89,7 @@ class Document():
         
         author_string = "" if self.authors == None else " ".join(self.authors)
         sections_string = "" if self.sections == None else " ".join(
-                [section.get_raw_text for section in self.sections])
+                [section.get_raw_text() for section in self.sections])
         title_string = " " if self.title == None else self.title
         abstract_string = " " if self.abstract == None else self.abstract
         return "{:s} {:s} {:s} {:s}".format(

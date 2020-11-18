@@ -34,6 +34,9 @@ class TermDict():
     def __init__(self):
         self.td = {}
     
+    def clear(self):
+        self.td.clear()
+
     def isIn(self, term):
         return term in self.td
 
@@ -87,11 +90,13 @@ class Index():
         for word in bow:
             td.processTerm(word, cord_uid)
         self.writeToIndex(td)
+        td.clear()
+        del td
 
     def writeToIndex(self, termDict):
         path = "Index/data/"
         for term in termDict.getKeys():
-            subDir = term[0:3]
+            subDir = term[0:2]
             if not os.path.isdir(path + subDir):
                 os.mkdir(path + subDir)
 
@@ -102,17 +107,17 @@ class Index():
 
     def getTerm(self, term):
         path = "Index/data/"
-        subDir = term[0:3]
+        subDir = term[0:2]
         with open(path + subDir + "/" + term + ".txt", "r") as termFile:
             for line in termFile:
                 print(line)
 
-    def processDocument(self):
-        rawText = self.getTestText()
+    def processDocument(self, rawText, cord_uid):
+        #rawText = self.getTestText()
         bow = self.bagOfWords(rawText)
         cleanUnstemmedBoW = self.removeStopwords(bow)
         cleanStemmedBoW = self.stemming(cleanUnstemmedBoW)
         
-        cord_uid = '???'
+        #cord_uid = '???'
         self.index(cleanStemmedBoW, cord_uid)
-        self.getTerm("sort")
+        #self.getTerm("sort")
