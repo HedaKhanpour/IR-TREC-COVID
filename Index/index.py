@@ -7,6 +7,7 @@ from nltk.tokenize import word_tokenize
 import re
 from collections import Counter
 import time
+
 '''
 class TermFrame():
     def __init__(self):
@@ -96,6 +97,9 @@ class Index():
     def writeToIndex(self, termDict):
         path = "Index/data/"
         for term in termDict.getKeys():
+            if(len(term) > 255):
+                continue
+            
             subDir = term[0:2]
             if not os.path.isdir(path + subDir):
                 os.mkdir(path + subDir)
@@ -104,13 +108,6 @@ class Index():
             docTF = termDict.getValue(term)[1]
             with open(path + subDir + "/" + term + ".txt", "a") as termFile:
                 termFile.write(cord_uid + "," + str(docTF) + "\n")
-
-    def getTerm(self, term):
-        path = "Index/data/"
-        subDir = term[0:2]
-        with open(path + subDir + "/" + term + ".txt", "r") as termFile:
-            for line in termFile:
-                print(line)
 
     def processDocument(self, rawText, cord_uid):
         #rawText = self.getTestText()
