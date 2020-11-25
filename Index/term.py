@@ -1,4 +1,11 @@
+from index import Index
 
+def processQuery(query):
+    index = Index()
+    bow = index.bagOfWords(query)
+    cleanUnstemmedBoW = index.removeStopwords(bow)
+    cleanStemmedBoW = index.stemming(cleanUnstemmedBoW)
+    return cleanStemmedBoW
 
 def getTerm(termStr):
     path = "Index/data/"
