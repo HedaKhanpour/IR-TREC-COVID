@@ -7,8 +7,7 @@ def processQuery(query):
     cleanStemmedBoW = index.stemming(cleanUnstemmedBoW)
     return cleanStemmedBoW
 
-def getTerm(termStr):
-    path = "Index/data/"
+def getTerm(termStr, path="../dataComplete/"):
     subDir = termStr[0:2]
     TF = 0
     payloads = {}
