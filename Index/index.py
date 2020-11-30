@@ -8,29 +8,6 @@ import re
 from collections import Counter
 import time
 
-'''
-class TermFrame():
-    def __init__(self):
-        self.df = pd.DataFrame(columns=["Cord_uid", "docTF"])
-    
-    def isIn(self, term):
-        return term in self.df.index
-
-    def processTerm(self, term, cord_uid):
-        if self.isIn(term):
-            self.updateTerm(term)
-        else:
-            self.addTerm(term, cord_uid)
-    
-    def addTerm(self, term, cord_uid):
-        self.df.loc[term] = [cord_uid, 1]
-    
-    def updateTerm(self, term):
-        self.df.loc[term] = [self.df.loc[term][0], self.df.loc[term][1] + 1]
-    
-    def printDataFrame(self):
-        print(self.df)
-'''
 class TermDict():
     def __init__(self):
         self.td = {}
@@ -110,11 +87,7 @@ class Index():
                 termFile.write(cord_uid + "," + str(docTF) + "\n")
 
     def processDocument(self, rawText, cord_uid):
-        #rawText = self.getTestText()
         bow = self.bagOfWords(rawText)
         cleanUnstemmedBoW = self.removeStopwords(bow)
         cleanStemmedBoW = self.stemming(cleanUnstemmedBoW)
-        
-        #cord_uid = '???'
         self.index(cleanStemmedBoW, cord_uid)
-        #self.getTerm("sort")
