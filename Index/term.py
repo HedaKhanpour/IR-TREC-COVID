@@ -1,4 +1,4 @@
-from index import Index
+from Index.index import Index
 
 def processQuery(query):
     index = Index()
