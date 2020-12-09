@@ -41,7 +41,6 @@ class TermDict():
     def printDict(self):
         print(self.td)
 
-
 class Index():
     def __init__(self):
         self.stopwords_dict = Counter(stopwords.words('english'))
