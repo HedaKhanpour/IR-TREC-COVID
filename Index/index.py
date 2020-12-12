@@ -84,7 +84,7 @@ class Index():
 
             cord_uid = termDict.getValue(term)[0]
             docTF = termDict.getValue(term)[1]
-            with open(path + subDir + "/" + term + ".txt", "a") as termFile:
+            with open(path + subDir + "/" + term + ".txt", "a") as termFile: # Should open have parameter "a"? If you rerun it appends the same info the last run did. DEFINITELY CAUSES WRONG BEHAVIOUR WHEN MAIN (test) IS REPEATED !!!!!!!!
                 termFile.write(cord_uid + "," + str(docTF) + "\n")
 
     def processDocument(self, rawText, cord_uid):

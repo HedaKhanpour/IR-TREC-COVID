@@ -27,7 +27,7 @@ import json
 
 class CsvReader():
     
-    def __init__(self, cord_path="D:/Universiteit/Master (Large Files)/IR Project/2020-11-05/",
+    def __init__(self, cord_path="D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/",
                  file_name="metadata.csv"):
         
         self.cord_path = cord_path
@@ -188,7 +188,7 @@ class DocumentNullCounter():
 
 if __name__ == "__main__":
     csv_reader = CsvReader(
-            cord_path="D:/Universiteit/Master (Large Files)/IR Project/2020-11-05/",
+            cord_path="D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/",
             file_name="metadata.csv")
     null_counter = DocumentNullCounter()
     doc_null_count = 0

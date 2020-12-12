@@ -22,22 +22,28 @@ def main():
     index = Index()
     for i in range(0, len(documents)):
         index.processDocument(documents[i], str(i))
-
+        
     # Process query
     query_result = dict()
 
     terms = processQuery(query)
     for t in terms:
-        d = getTerm(t)
+        d = getTerm(t, path="Index/data/")
 
         s = score.calculate_BM25_score(d.TF)
-
+        
+        print("\n",t)
+        print(d.payloads)
+        print(d.TF)
+        print(s)
+        
         for i in d.payloads.keys():
             if i in query_result:
                 query_result[i] += s
             else:
                 query_result[i] = s
-
+    print("\nQuery result:\n")
+    print(query_result)
 
 if __name__ == "__main__":
     main()
