@@ -10,6 +10,7 @@ import os.path
 # document, and adds it up. When divided by the total number of documents
 # this should yield the average document length. Takes a while to complete.
 # Result is: 627448052
+# Result for the 2020-07-16 data set: 159729133
 def count_tokens(path_dataComplete):
     n_tokens = 0
     for sub_directory in os.listdir(path_dataComplete):
@@ -23,6 +24,7 @@ def count_tokens(path_dataComplete):
         print("{} tokens counted after directory {}".format(n_tokens, sub_directory))
 
 # Counts the number of documents: 336596
+# Result for the 2020-07-16 data set: 192509
 def count_documents(path_metadata):
     with open(path_metadata, "r", encoding="utf-8") as f:
         print(len(list(f))-1)
@@ -33,8 +35,8 @@ def make_rank_object():
     b = 0.75
 
     # Document calculations
-    documents_count = 336596
-    doc_length = 627448052 / 192509 # THE NUMERATOR NEEDS TO BE UPDATED WITH THE COUNTS FOR THE NEW DATACOMPLETE # Based on the output of the count_tokens() and count_documents() functions respectively
+    documents_count = 192509
+    doc_length = 159729133 / documents_count # THE NUMERATOR NEEDS TO BE UPDATED WITH THE COUNTS FOR THE NEW DATACOMPLETE # Based on the output of the count_tokens() and count_documents() functions respectively
     ranker = Rank(k1, b, documents_count, doc_length)
     return ranker
 
