@@ -90,5 +90,5 @@ if __name__ == "__main__":
     
     #count_tokens(path_dataComplete)
     #count_documents(path_metadata)
-    
-    #main(path_dataComplete)
+    path_dataComplete = "../dataComplete/"
+    main(path_dataComplete)

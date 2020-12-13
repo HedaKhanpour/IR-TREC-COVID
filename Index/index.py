@@ -64,16 +64,15 @@ class Index():
         stemmer = PorterStemmer()
         return [stemmer.stem(word) for word in bow]
 
-    def index(self, bow, cord_uid):
+    def index(self, bow, cord_uid, index_path):
         td = TermDict()
         for word in bow:
             td.processTerm(word, cord_uid)
-        self.writeToIndex(td)
+        self.writeToIndex(td, index_path)
         td.clear()
         del td
 
-    def writeToIndex(self, termDict):
-        path = "Index/data/"
+    def writeToIndex(self, termDict, path):
         for term in termDict.getKeys():
             if (len(term) > 255):
                 continue
@@ -87,8 +86,8 @@ class Index():
             with open(path + subDir + "/" + term + ".txt", "a") as termFile: # Should open have parameter "a"? If you rerun it appends the same info the last run did. DEFINITELY CAUSES WRONG BEHAVIOUR WHEN MAIN (test) IS REPEATED !!!!!!!!
                 termFile.write(cord_uid + "," + str(docTF) + "\n")
 
-    def processDocument(self, rawText, cord_uid):
+    def processDocument(self, rawText, cord_uid, index_path="Index/data/"):
         bow = self.bagOfWords(rawText)
         cleanUnstemmedBoW = self.removeStopwords(bow)
         cleanStemmedBoW = self.stemming(cleanUnstemmedBoW)
-        self.index(cleanStemmedBoW, cord_uid)
+        self.index(cleanStemmedBoW, cord_uid, index_path)
