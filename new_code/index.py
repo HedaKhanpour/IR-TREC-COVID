@@ -8,6 +8,12 @@ import re
 from collections import Counter
 import time
 
+def processQuery(query):
+    index = Index()
+    bow = index.bagOfWords(query)
+    cleanUnstemmedBoW = index.removeStopwords(bow)
+    cleanStemmedBoW = index.stemming(cleanUnstemmedBoW)
+    return cleanStemmedBoW
 
 class TermDict():
     def __init__(self):
@@ -64,38 +70,33 @@ class Index():
         stemmer = PorterStemmer()
         return [stemmer.stem(word) for word in bow]
 
-    def index(self, bow, cord_uid, index_path):
+    def index(self, bow, cord_uid, inverted_indexes):
         td = TermDict()
         for word in bow:
             td.processTerm(word, cord_uid)
-        self.writeToIndex(td, index_path)
+        self.writeToIndex(td, inverted_indexes)
         td.clear()
         del td
 
-    def writeToIndex(self, termDict, path):
+    def writeToIndex(self, termDict, inverted_indexes):
         for term in termDict.getKeys():
             if (len(term) > 255):
                 continue
 
-            subDir = term[0:2]
-            if not os.path.isdir(path + subDir):
-                os.mkdir(path + subDir)
-
             cord_uid = termDict.getValue(term)[0]
             docTF = termDict.getValue(term)[1]
             
-            # Windows does not allow these file names (there may be a better solution possible than skipping)
-            if (term == "con" or term == "prn" or
-                term == "aux" or term == "nul"):
-                continue
-                
-            with open(path + subDir + "/" + term + ".txt", "a") as termFile:
-                termFile.write(cord_uid + "," + str(docTF) + "\n")
+            if term in inverted_indexes:
+                inverted_indexes[term][cord_uid] = docTF
+            else:
+                inverted_indexes[term] = dict()
+                inverted_indexes[term][cord_uid] = docTF
+        return inverted_indexes
 
-    def processDocument(self, rawText, cord_uid, index_path="Index/data/"):
+    def processDocument(self, rawText, cord_uid, inverted_indexes):
         bow = self.bagOfWords(rawText)
         cleanUnstemmedBoW = self.removeStopwords(bow)
         cleanStemmedBoW = self.stemming(cleanUnstemmedBoW)
-        self.index(cleanStemmedBoW, cord_uid, index_path)
+        self.index(cleanStemmedBoW, cord_uid, inverted_indexes)
         return len(cleanStemmedBoW)
         

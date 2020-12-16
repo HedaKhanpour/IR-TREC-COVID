@@ -4,17 +4,12 @@ import os.path
 import json
 import pickle
 from index import Index
+import time
 
 # ***
 # I haven't made sure yet, but I have the feeling we've disregarded all 
 # pdf_json files thus far. After looking some more, I am fairly certain we
 # have.
-#
-# THERE ARE ARTICLES THAT ARE INCLUDED IN THE RELEVANCE JUDGEMENTS, BUT
-# OF WHICH THE FULL TEXT AND OTHER INFO IS MISSING (for example the
-# article with cord_uid: of1kivah). If our performance remains poor after 
-# fixing other things, we may want to try and find out how big this issue is,
-# and if there is a way to fix it.
 #
 # For pdf_json stuff it is sometimes the case that there are two files, I think
 # in this case one is supplementary material or something.
@@ -50,6 +45,9 @@ from index import Index
 #   One thing that I find strange is that there appear to be ~192,509 lines in
 #   the metadata file, there are 62,736+84,420 = 147,156 json files, but only
 #   ~84,145 json file names listed in the metadata.
+#
+#   I've tested some things and there appear to be 12,180 documents in the
+#   the relevance judgements that we cannot access in our current manner.
 #  
 # I am going to base the document length on the clean, stemmed, bag of words
 # representation of a document, I am not 100% sure whether this is how it
@@ -198,9 +196,10 @@ class DocumentGatherer():
         document = Document(cord_uid, title, abstract, authors, sections)
         return document
         
-def create_data_complete(documents, index_path):
+def create_data_complete(documents):
     print(f"There are {len(documents)} documents to be processed.")
     
+    inverted_indexes = dict()
     doc_lengths = dict()
     index = Index()
     i = 0
@@ -214,22 +213,28 @@ def create_data_complete(documents, index_path):
         doc_string = f"{author_string} {sections_string} {title_string} {abstract_string}"
         
         # Process the document and write term frequencies to the appropriate file
-        doc_length = index.processDocument(doc_string, doc.cord_uid, index_path=index_path)
+        doc_length = index.processDocument(doc_string, doc.cord_uid, inverted_indexes)
         
          # Store the document length
         doc_lengths[doc.cord_uid] = doc_length
         
         i += 1
-        if i % 1 == 0:
+        if i % 1000 == 0:
             print(f"Processed {i} documents ...")
     print(f"Done: processed {i} documents ...")
     
+    # Store the great dictionary
+    with open('inverted_indexes.pkl', 'wb') as f:
+        pickle.dump(inverted_indexes, f)
+    
     # Store the document length dictionary
     with open('doc_lengths.pkl', 'wb') as f:
-        documents = pickle.dump(doc_lengths, f)
-
-def compute_document_statistics(documents, doc_lengths):
+        pickle.dump(doc_lengths, f)
+        
+def compute_document_statistics(documents, doc_lengths, path_CRJ):
+    """Compute and print several relevant stastics"""
     
+    print("\n------------- Computing document statistics -------------")
     print(f"{len(doc_lengths)/len(documents) * 100}% of stored documents are unique.")
     
     print("\nThe following should be taken into account with the coming calculations:")
@@ -241,13 +246,39 @@ def compute_document_statistics(documents, doc_lengths):
         total_nr_of_terms += doc_lengths[key]
     print(f"\nThere are {total_nr_of_terms} terms in total accross all documents.")
     print(f"The average document length is {total_nr_of_terms/len(doc_lengths)}")
+    
+    # Rest of the code is to test for the presence of relevant documents
+    print("\n-------- Testing for the presence of relevant documents --------")
+    processed_docs = set()
+    for doc in documents:
+        processed_docs.add(doc.cord_uid)
+    
+    crj_docs = set()
+    # Load the stored documents
+    with open(path_CRJ, 'r') as f:
+        for line in f:
+            crj = line.split(" ")
+            cord_uid = crj[2]
+            crj_docs.add(cord_uid)
+    
+    only_processed = processed_docs - crj_docs
+    only_crj = crj_docs - processed_docs
+    symmetric_difference = processed_docs.symmetric_difference(crj_docs)
+    intersection = processed_docs.intersection(crj_docs)
+    print(f"There are {len(processed_docs)} unique processed documents.")
+    print(f"There are {len(crj_docs)} unique documents in the relevance judgements.")
+    print(f"There are {len(only_processed)} documents that were processed, but are not present in the relevance judgements.")
+    print(f"There are {len(only_crj)} documents that are present in the relevance judgements, but were not processed.")
+    print(f"There are {len(symmetric_difference)} documents that were both processed and are present in the relevance judgements.")
+    print(f"There are {len(intersection)} documents that were either processed or were present in the relevance judgements, but not both.")
+
         
-            
 if __name__ == "__main__":
-    path_dataComplete = r"D:/Universiteit/Master (Large Files)/IR Project/dataComplete/"
     path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
     path_cord = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/"
-    path_documents = r"D:/Universiteit/Master (Large Files)/IR Project/documents.pkl"
+    path_documents = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/documents.pkl"
+    path_doc_lengths = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/doc_lengths.pkl"
+    path_CRJ = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
     
 # =============================================================================
 #     # Gather all documents with retrievable text
@@ -260,17 +291,23 @@ if __name__ == "__main__":
 #         pickle.dump(documents, f)
 # =============================================================================
     
+# =============================================================================
+#     # Load the stored documents
+#     with open(path_documents, 'rb') as f:
+#         documents = pickle.load(f)
+#     print(f"Loaded {len(documents)} documents")
+#     
+#     # Create new term frequency things (aren't these called inverted indexes?)
+#     create_data_complete(documents)
+# =============================================================================
+    
     # Load the stored documents
     with open(path_documents, 'rb') as f:
         documents = pickle.load(f)
     print(f"Loaded {len(documents)} documents")
     
-    # Create new term frequency things (aren't these called inverted indexes?)
-    create_data_complete(documents, index_path=r"new_data_complete_2/")
+    with open(path_doc_lengths, 'rb') as f:
+        doc_lengths = pickle.load(f)
+    print(f"Loaded {len(doc_lengths)} document lengths")
     
-    
-# =============================================================================
-#     with open('doc_lengths.pkl', 'rb') as f:
-#         doc_lengths = pickle.load(f)
-#     print(f"Loaded {len(doc_lengths)} document lengths")
-# =============================================================================
+    compute_document_statistics(documents, doc_lengths, path_CRJ)

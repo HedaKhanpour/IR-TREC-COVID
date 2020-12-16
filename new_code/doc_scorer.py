@@ -1,8 +1,7 @@
 import re
 import sys
 from math import log
-from term import processQuery
-from term import getTerm
+from index import processQuery
 from operator import itemgetter
 import pickle
 
@@ -11,21 +10,16 @@ import pickle
 # termSize in the calculate_IDF should be the term frequency
 # Solved
 
-
 class Constants():
     
     def __init__(self, path_doc_lengths, k=1.2, b=0.75):
         self.k = k # Free BM25 parameter in the range [0, +inf)
         self.b = b # Free BM25 parameter in the range [0, 1]
-        
-        # Load the dictionary containing the length of each document
-        with open(path_doc_lengths, 'rb') as f:
-            self.doc_lengths = pickle.load(f)
             
-        self.doc_count = 192509 # SHOULD BE UPDATED ONCE THE DOCUMENT_LENGTHS ARE IN ***
-        self.avg_doc_length = 159712070 / self.doc_count # SHOULD BE UPDATED ONCE THE DOCUMENT_LENTHS ARE IN ***
+        self.doc_count = 84143
+        self.avg_doc_length = 2669.2203629535434
 
-def extract_queries(path_topics="topics-rnd5.xml", nr_of_queries=50):
+def extract_queries(path_topics="../topics-rnd5.xml", nr_of_queries=50):
     """Extracts queries from a list of topics."""
     
     topic_queries = []
@@ -49,8 +43,8 @@ def write_output_file(query_nr, doc_scores, output_file_path, top_n=1000):
     
     with open(output_file_path, "a") as f:
         doc_rank = 1
-        for doc_id, doc_score in top_n_doc_scores.items():
-            string = f"{query_nr} Q0 {doc_id} {doc_rank} {doc_score} TEST-RUN-0\n"
+        for cord_uid, doc_score in top_n_doc_scores.items():
+            string = f"{query_nr} Q0 {cord_uid} {doc_rank} {doc_score} TEST-RUN-0\n"
             f.write(string)
             doc_rank += 1
     
@@ -65,7 +59,7 @@ def compute_term_BM25(term, tf, docs_containing_term_count, doc_count,
     
     return score
 
-def compute_doc_scores(query_terms, constants):
+def compute_doc_scores(query_terms, inverted_indexes, doc_lengths, constants):
     """Compute the BM25 score for each document given a query."""
     
     doc_scores = dict() # This is to contain each document's score
@@ -73,28 +67,30 @@ def compute_doc_scores(query_terms, constants):
     for term in query_terms: # For each query term ...
     
         # Retrieve information regarding the current term
-        term_info = getTerm(term, path=path_dataComplete)
+        term_info = inverted_indexes[term]
+        n_docs_containing_term = len(term_info)
         
         # For each document that contains the term ...
-        for doc_id in term_info.payloads.keys():
-            tf = term_info.payloads[doc_id] # Retrieve the term frequency
-            doc_length = constants.doc_lengths[doc_id] # Retrieve the document length
+        for cord_uid in term_info.keys():
+            tf = term_info[cord_uid] # Retrieve the term frequency
+            doc_length = doc_lengths[cord_uid] # Retrieve the document length
             
             # Compute document's score for this term
-            score = compute_term_BM25(term, tf, term_info.n_docs_containing_term,
+            score = compute_term_BM25(term, tf, n_docs_containing_term,
                                       constants.doc_count,
                                       constants.avg_doc_length, doc_length,
                                       constants.k, constants.b)
             
             # Store or increment the score
-            if doc_id in doc_scores:
-                doc_scores[doc_id] += score
+            if cord_uid in doc_scores:
+                doc_scores[cord_uid] += score
             else:
-                doc_scores[doc_id] = score
+                doc_scores[cord_uid] = score
     
     return doc_scores
 
-def score_documents(queries, constants, output_file_dir=r"trec_eval-master/our_data/",
+def score_documents(queries, inverted_indexes, doc_lengths, constants,
+                    output_file_dir=r"../trec_eval-master/our_data/",
                     output_file_name="results"):
     """For each given query: scores documents, saving the best 10,000 scores."""
     
@@ -112,7 +108,8 @@ def score_documents(queries, constants, output_file_dir=r"trec_eval-master/our_d
         query_terms = processQuery(query)
         
         # Compute the BM25 score for each document for the current query
-        doc_scores = compute_doc_scores(query_terms, constants)
+        doc_scores = compute_doc_scores(query_terms, inverted_indexes,
+                                        doc_lengths, constants)
         
         # Write the top 1000 document scores for this query to a .txt file
         write_output_file(query_nr, doc_scores, output_file_path)
@@ -125,13 +122,20 @@ if __name__ == "__main__":
     path_dataComplete = r"D:/Universiteit/Master (Large Files)/IR Project/dataComplete/"
     path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
     path_doc_parses = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/document_parses/"
-    path_doc_lengths = "doc_lengths.pkl"
+    path_inverted_indexes = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/inverted_indexes.pkl"
+    path_doc_lengths = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/doc_lengths.pkl"
+        
+    # Load the dictionary containing the length of each document
+    with open(path_inverted_indexes, 'rb') as f:
+        inverted_indexes = pickle.load(f)
+        
+    # Load the dictionary containing the length of each document
+    with open(path_doc_lengths, 'rb') as f:
+        doc_lengths = pickle.load(f)
     
-# =============================================================================
-#     queries = extract_queries()
-#     constants = Constants(path_doc_lengths=path_doc_lengths, k=1.2, b=0.75)
-#     score_documents(queries, constants, output_file_name="results_new")
-# =============================================================================
+    queries = extract_queries()
+    constants = Constants(path_doc_lengths=path_doc_lengths, k=1.2, b=0.75)
+    score_documents(queries, inverted_indexes, doc_lengths, constants, output_file_name="results")
     
     
     
