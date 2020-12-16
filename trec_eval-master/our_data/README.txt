@@ -17,6 +17,7 @@ Here are some example commands:
 	run trec_eval -q -M1000 our_data/CRJ.txt our_data/TR2.txt
 	run trec_eval -q -M1000 -m official our_data/CRJ.txt our_data/TR2.txt
 	run trec_eval -q -M1000 -m set our_data/CRJ.txt our_data/TR2.txt
+	run trec_eval -M1000 -m official our_data/CRJ.txt our_data/results.txt
 Here:
 	'-MX' determines the maximum number X of articles included in the ranking.
 	'our_data/CRJ.txt' is the file containing the relevance judgements
