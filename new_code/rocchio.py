@@ -5,59 +5,6 @@ from operator import itemgetter
 from index import Index
 from data_gatherer import *
 
-def rocchio_old(query, rel_docs, alpha=1.0, beta=0.75):
-    # Calculate TF-IDF for each term for the set of relevant documents
-    # 
-
-    ## Assigning values to the query 
-    result = dict()
-    for q in query:
-        result[q] = 1.0
-
-    ## Collecting every term in the set of relevant documents
-    rel_terms = []
-    for d in rel_docs:
-        doc = rel_docs[d]
-        for term in doc:
-            if not term in rel_terms:
-                rel_terms.append(term)
-    #print("Relevant terms: {}".format(rel_terms))
-
-    ## For every relevant term
-    for term in rel_terms:
-        ## Term frequency
-        tf = 0
-
-        ## Number of relevant documents containing a the term
-        nqi = 0
-
-        ## For every relevant document
-        for doc in rel_docs:
-            ## If the term is in the document
-            if term in rel_docs[doc]:
-                nqi += 1
-                ## For every term in the relevant document
-                for doc_term in rel_docs[doc]:
-                    ## Counting the term frequency 
-                    if term == doc_term:
-                        tf += 1
-        #print("TF[{}]:{}".format(term, tf[term]))
-        
-        ## Calculating the IDF of the term
-        idf = log((len(rel_docs) - nqi + 0.5) / (nqi + 0.5) + 1)
-
-        ## Calculating the TF*IDF of the term
-        tf_idf = tf * idf
-
-        ## Calculating the feedback weight of the term
-        feedback_weight = beta * (tf_idf / len(rel_docs))
-
-        if term in result:
-            result[term] = alpha * result[term] + feedback_weight
-        elif feedback_weight > 0.0:
-            result[term] = feedback_weight    
-    return result
-
 def docToTerms(doc):
     # Retrieve the document fields
     author_string = "" if doc.authors == None else " ".join(filter(None, doc.authors))
@@ -114,13 +61,9 @@ def rocchio(query, rel_docs, inverted_index, all_documents, alpha=1.0, beta=0.75
     return expanded_query
 
 if __name__ == "__main__":
-
-    path_metadata = "../cord-19_2020-07-16/metadata.csv"
-    path_cord = "../cord-19_2020-07-16/"
-    path_documents = "../cord-19_2020-07-16/documents.pkl"
+    
     path_inverted_index = "../inverted_indexes.pkl"
     path_doc_lengths = "../doc_lengths.pkl"
-    path_CRJ = "trec_eval-master/our_data/CRJ.txt"
     path_documents = "../cord-19_2020-07-16/documents.pkl"
     
     # Load the dictionary containing the inverted index
