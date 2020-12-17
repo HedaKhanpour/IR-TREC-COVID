@@ -196,7 +196,7 @@ class DocumentGatherer():
         document = Document(cord_uid, title, abstract, authors, sections)
         return document
         
-def create_data_complete(documents):
+def create_data_complete(documents, path_inverted_index='inverted_indexes.pkl', path_doc_lengths='doc_lengths.pkl'):
     print(f"There are {len(documents)} documents to be processed.")
     
     inverted_indexes = dict()
@@ -224,11 +224,11 @@ def create_data_complete(documents):
     print(f"Done: processed {i} documents ...")
     
     # Store the great dictionary
-    with open('inverted_indexes.pkl', 'wb') as f:
+    with open(path_inverted_index, 'wb') as f:
         pickle.dump(inverted_indexes, f)
     
     # Store the document length dictionary
-    with open('doc_lengths.pkl', 'wb') as f:
+    with open(path_doc_lengths, 'wb') as f:
         pickle.dump(doc_lengths, f)
         
 def compute_document_statistics(documents, doc_lengths, path_CRJ):
@@ -277,30 +277,38 @@ if __name__ == "__main__":
     path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
     path_cord = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/"
     path_documents = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/documents.pkl"
+    
     path_doc_lengths = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/doc_lengths.pkl"
     path_CRJ = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
     
-# =============================================================================
-#     # Gather all documents with retrievable text
-#     document_gatherer = DocumentGatherer(path_metadata, path_cord)
-#     documents = document_gatherer.gather_documents()
-#     print(f"Done: {len(documents)} documents gathered")
-#     
-#     # Store the documents
-#     with open(path_documents, 'wb') as f:
-#         pickle.dump(documents, f)
-# =============================================================================
+    path_metadata = "../cord-19_2020-07-16/metadata.csv"
+    path_cord = "../cord-19_2020-07-16/"
+    path_documents = "../cord-19_2020-07-16/documents.pkl"
+    path_inverted_index = "../inverted_indexes.pkl"
+    path_doc_lengths = "../doc_lengths.pkl"
+    path_CRJ = "trec_eval-master/our_data/CRJ.txt"
+    '''
+    # Gather all documents with retrievable text
+    document_gatherer = DocumentGatherer(path_metadata, path_cord)
+    documents = document_gatherer.gather_documents()
+    print(f"Done: {len(documents)} documents gathered")
+     
+    # Store the documents
+    with open(path_documents, 'wb') as f:
+        pickle.dump(documents, f)
+    '''
+    #84145 documents gathered
+    '''
+    # Load the stored documents
+    with open(path_documents, 'rb') as f:
+        documents = pickle.load(f)
+    print(f"Loaded {len(documents)} documents")
     
-# =============================================================================
-#     # Load the stored documents
-#     with open(path_documents, 'rb') as f:
-#         documents = pickle.load(f)
-#     print(f"Loaded {len(documents)} documents")
-#     
-#     # Create new term frequency things (aren't these called inverted indexes?)
-#     create_data_complete(documents)
-# =============================================================================
     
+    # Create new term frequency things (aren't these called inverted indexes?)
+    create_data_complete(documents, path_inverted_index=path_inverted_index, path_doc_lengths=path_doc_lengths)
+    '''
+   
     # Load the stored documents
     with open(path_documents, 'rb') as f:
         documents = pickle.load(f)
