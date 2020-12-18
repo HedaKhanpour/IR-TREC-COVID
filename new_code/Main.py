@@ -1,5 +1,5 @@
 from SearchSystem import SearchSystem
-from Util import Document
+from Util import Document # A necessary import
 
 if __name__ == "__main__":
     search_system = SearchSystem()
