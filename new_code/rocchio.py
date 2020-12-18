@@ -1,10 +1,13 @@
-from doc_scorer import *
 from math import log
 import pickle
-from operator import itemgetter
-from index import Index
-from data_gatherer import *
-import time 
+import time
+
+from Util import processQuery
+
+from DocumentRanker import write_output_file
+from DocumentRanker import compute_doc_scores
+from DocumentRanker import extract_queries
+
 def docToTerms(doc):
     # Retrieve the document fields
     author_string = "" if doc.authors == None else " ".join(filter(None, doc.authors))
@@ -94,8 +97,6 @@ if __name__ == "__main__":
     queries = extract_queries(path_topics="topics-rnd5.xml")
     #query = queries[0]
 
-    constants = Constants(path_doc_lengths=path_doc_lengths, k=1.2, b=0.75)
-
     output_file_path = "trec_eval-master/our_data/results.txt"
     output_file_path_2 = "trec_eval-master/our_data/results_2.txt"
     # Clear the contents of the output file
@@ -111,7 +112,7 @@ if __name__ == "__main__":
         # Compute the BM25 score for each document for the current query
         bm25_time = time.time()
         doc_scores = compute_doc_scores(query_terms, inverted_index,
-                                            doc_lengths, constants)
+                                            doc_lengths)
         #print("Calculating BM25 scores: DONE, time: {}".format(time.time() - bm25_time))
 
         ## Set of relevant documents
@@ -130,7 +131,7 @@ if __name__ == "__main__":
         # Compute the BM25 score for each document for the current query
         #bm25_time_2 = time.time()
         doc_scores_2 = compute_doc_scores(expanded_query, inverted_index,
-                                            doc_lengths, constants)
+                                            doc_lengths)
         #print("Calculating BM25 scores_2: DONE, time: {}".format(time.time() - bm25_time_2))
 
         
