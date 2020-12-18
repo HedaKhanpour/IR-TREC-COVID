@@ -4,7 +4,7 @@ import pickle
 from operator import itemgetter
 from index import Index
 from data_gatherer import *
-
+import time 
 def docToTerms(doc):
     # Retrieve the document fields
     author_string = "" if doc.authors == None else " ".join(filter(None, doc.authors))
@@ -17,47 +17,59 @@ def docToTerms(doc):
     terms = processQuery(doc_string)
     return terms
 
-def rocchio(query, rel_docs, inverted_index, all_documents, alpha=1.0, beta=0.75):
+def rocchio(query, rel_docs, inverted_index, all_documents, 
+    alpha=0.25, beta=0.75, gamma=0.25, weight_cutoff=0.75):
     # Calculate TF-IDF for each term for the set of relevant documents
     # 
-
+    len_non_rel_docs = len(all_documents) - len(rel_docs)
     ## Assigning values to the query 
     expanded_query = dict()
     for q in query:
-        expanded_query[q] = 1.0
+        expanded_query[q] = 0.9
 
     ## Collecting every term in the set of relevant documents
+    startTime = time.time()
     rel_terms = []
     for doc in all_documents:
         if doc.cord_uid in rel_docs:
             rel_terms += docToTerms(doc)
     # Remove duplicate terms
     rel_terms = list(set(rel_terms))
-    print("[Rocchio] Extracting relevant terms: DONE")
+    #print("[Rocchio] Extracting relevant terms: DONE")
 
     ## For every relevant term
     for term in rel_terms:
-        ## Term frequency
-        tf = 0
-        ## Number of relevant documents containing a the term
+        ## Term frequency relevant document
+        rel_tf = 0
+        ## Term frequency non relevant document
+        non_rel_tf = 0
+        ## Number of relevant documents containing the term
         nqi = 0
 
         for cord_uid in inverted_index[term]:
             if cord_uid in rel_docs:
-                tf += inverted_index[term][cord_uid]
+                rel_tf += inverted_index[term][cord_uid]
                 nqi += 1
+            else:
+                non_rel_tf += inverted_index[term][cord_uid]
 
         ## Calculating the IDF of the term
-        idf = log((len(rel_docs) - nqi + 0.5) / (nqi + 0.5) + 1)
+        idf = log(float(len(documents)) / float(len(inverted_index[term])))
+        #idf = log((len(rel_docs) + 1) / nqi)
         ## Calculating the TF*IDF of the term
-        tf_idf = tf * idf
+        #tf_idf = tf * idf
         ## Calculating the feedback weight of the term
-        feedback_weight = beta * (tf_idf / len(rel_docs))
+        feedback_weight = 0
+        for cord_uid in inverted_index[term]:
+            if cord_uid in rel_docs:
+                feedback_weight += beta * idf * (rel_tf / len(rel_docs))
+            else:
+                feedback_weight -= gamma * idf * (non_rel_tf / len_non_rel_docs)
 
         if term in expanded_query:
-            expanded_query[term] = alpha * expanded_query[term] + feedback_weight
-        elif feedback_weight > 0.0:
-            expanded_query[term] = feedback_weight    
+            expanded_query[term] = (alpha * expanded_query[term]) + feedback_weight
+        elif feedback_weight > weight_cutoff:
+            expanded_query[term] = feedback_weight  
     return expanded_query
 
 if __name__ == "__main__":
@@ -80,48 +92,74 @@ if __name__ == "__main__":
     print("Loading documents: DONE")
 
     queries = extract_queries(path_topics="topics-rnd5.xml")
-    query = queries[0]
+    #query = queries[0]
 
     constants = Constants(path_doc_lengths=path_doc_lengths, k=1.2, b=0.75)
 
-    # Transform the query terms to the desired form (i.e. tokenized, stemmed, ...)
-    query_terms = processQuery(query)
-    
-    # Compute the BM25 score for each document for the current query
-    doc_scores = compute_doc_scores(query_terms, inverted_index,
-                                        doc_lengths, constants)
-    print("Calculating BM25 scores: DONE")
-   
-    ## Set of relevant documents
-    top_k = 10
-    rel_docs = dict()
-    for rank in dict(list(doc_scores.items())[:top_k]):
-        rel_docs[rank] = doc_scores[rank]
+    output_file_path = "trec_eval-master/our_data/results.txt"
+    output_file_path_2 = "trec_eval-master/our_data/results_2.txt"
+    # Clear the contents of the output file
+    open(output_file_path, "w").close()
+    open(output_file_path_2, "w").close()
 
-    expansion = rocchio(query_terms, rel_docs, inverted_index, documents)
-    print("Calculating rocchio query expansion: DONE")
-    expanded_query = list(expansion.keys())
+    query_nr = 1 # Used to keep track of which query is being processed
+    for query in queries:
+        print(f"Processing query {query_nr}: '{query}'")
+        # Transform the query terms to the desired form (i.e. tokenized, stemmed, ...)
+        query_terms = processQuery(query)
+        
+        # Compute the BM25 score for each document for the current query
+        bm25_time = time.time()
+        doc_scores = compute_doc_scores(query_terms, inverted_index,
+                                            doc_lengths, constants)
+        #print("Calculating BM25 scores: DONE, time: {}".format(time.time() - bm25_time))
 
-    # Compute the BM25 score for each document for the current query
-    doc_scores_2 = compute_doc_scores(expanded_query, inverted_index,
-                                        doc_lengths, constants)
-    print("Calculating BM25 scores_2: DONE")
-    
-    # Sort by score and select the n highest scored documents
-    top_n = 20
-    top_n_doc_scores = dict(sorted(doc_scores.items(),
-                                   key = itemgetter(1), reverse = True)[:top_n])
-    
-    top_n_doc_scores_2 = dict(sorted(doc_scores_2.items(),
-                                   key = itemgetter(1), reverse = True)[:top_n])
-    print("Sorting top n scores: DONE")
-    for i in range(top_n):
-        id_1 = list(top_n_doc_scores.keys())[i]
-        id_2 = list(top_n_doc_scores_2.keys())[i]
-        score_1 = top_n_doc_scores[id_1]
-        score_2 = top_n_doc_scores_2[id_2]
-        print("#{}: {}[{}] --- {}[{}]".format(i, id_1, score_1, id_2, score_2))
+        ## Set of relevant documents
+        top_k = 1
+        rel_docs = dict()
+        for rank in dict(list(doc_scores.items())[:top_k]):
+            rel_docs[rank] = doc_scores[rank]
+        #rocchio_time = time.time()
+        expansion = rocchio(query_terms, rel_docs, inverted_index, documents)
+        #print("Calculating rocchio query expansion: DONE, time: {}".format(time.time() - rocchio_time))
+        expanded_query = list(expansion.keys())
+        #for key in expansion:
+        #print("{}:{}".format(key, expansion[key]))
+        #print("Expanded query length: {}".format(len(expanded_query)))
 
-    
+        # Compute the BM25 score for each document for the current query
+        #bm25_time_2 = time.time()
+        doc_scores_2 = compute_doc_scores(expanded_query, inverted_index,
+                                            doc_lengths, constants)
+        #print("Calculating BM25 scores_2: DONE, time: {}".format(time.time() - bm25_time_2))
+
+        
+        # Write the top 1000 document scores for this query to a .txt file
+        write_output_file(query_nr, doc_scores, output_file_path)
+        write_output_file(query_nr, doc_scores_2, output_file_path_2)
+        #print("Calculating BM25 scores_2: DONE")
+        
+        # Increment the query number for the next iteration
+        query_nr += 1
+        if query_nr > 50:
+            break
+        
+        '''
+        # Sort by score and select the n highest scored documents
+        top_n = 20
+        top_n_doc_scores = dict(sorted(doc_scores.items(),
+                                    key = itemgetter(1), reverse = True)[:top_n])
+        
+        top_n_doc_scores_2 = dict(sorted(doc_scores_2.items(),
+                                    key = itemgetter(1), reverse = True)[:top_n])
+        print("Sorting top n scores: DONE")
+        for i in range(top_n):
+            id_1 = list(top_n_doc_scores.keys())[i]
+            id_2 = list(top_n_doc_scores_2.keys())[i]
+            score_1 = top_n_doc_scores[id_1]
+            score_2 = top_n_doc_scores_2[id_2]
+            print("#{}: {}[{}] --- {}[{}]".format(i, id_1, score_1, id_2, score_2))
+        '''
+
  
     
