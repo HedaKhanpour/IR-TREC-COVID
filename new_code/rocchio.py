@@ -1,12 +1,8 @@
 from math import log
 import pickle
 import time
-
+from operator import itemgetter
 from Util import processQuery
-
-from DocumentRanker import write_output_file
-from DocumentRanker import compute_doc_scores
-from DocumentRanker import extract_queries
 
 def docToTerms(doc):
     # Retrieve the document fields
@@ -20,7 +16,7 @@ def docToTerms(doc):
     terms = processQuery(doc_string)
     return terms
 
-def rocchio(query, rel_docs, inverted_index, all_documents, 
+def rocchio_old(query, rel_docs, inverted_index, all_documents, 
     alpha=0.25, beta=0.75, gamma=0.25, weight_cutoff=0.75):
     # Calculate TF-IDF for each term for the set of relevant documents
     # 
@@ -57,7 +53,7 @@ def rocchio(query, rel_docs, inverted_index, all_documents,
                 non_rel_tf += inverted_index[term][cord_uid]
 
         ## Calculating the IDF of the term
-        idf = log(float(len(documents)) / float(len(inverted_index[term])))
+        idf = log(float(len(all_documents)) / float(len(inverted_index[term])))
         #idf = log((len(rel_docs) + 1) / nqi)
         ## Calculating the TF*IDF of the term
         #tf_idf = tf * idf
@@ -75,8 +71,56 @@ def rocchio(query, rel_docs, inverted_index, all_documents,
             expanded_query[term] = feedback_weight  
     return expanded_query
 
-if __name__ == "__main__":
+def rocchio(query, rel_docs, inverted_index, all_documents, 
+    alpha=0.5, beta=0.75, gamma=0.25, top_k_terms=4):
+
+    ## Assigning values to the query 
+    expanded_query = dict()
+    for q in query:
+        expanded_query[q] = alpha * 1.0
+
+    term_weight = dict()
+    ## Sum the term weight for every relevant document
+    for doc in all_documents:
+        ## If the document is relevant
+        if doc.cord_uid in rel_docs:
+            ## Get every term in the relevant document
+            rel_terms = docToTerms(doc)
+            for term in rel_terms:
+                doc_tf = inverted_index[term][doc.cord_uid]
+                if term in term_weight:
+                    term_weight[term] = term_weight[term] + doc_tf
+                else:
+                    term_weight[term] = doc_tf
     
+    for term in term_weight:
+        rel_docs_containing_term = 0
+        ## Count the relevant documents containting the term
+        for cord_uid in inverted_index[term]:
+            if cord_uid in rel_docs:
+                rel_docs_containing_term += 1
+        
+        ## Calculate the IDF of the term for the relevant document set
+        idf = log(len(rel_docs) / rel_docs_containing_term)
+        tf_idf = term_weight[term] * idf
+        normalized_weight = beta * (1 / len(rel_docs)) * tf_idf
+        term_weight[term] = normalized_weight
+
+    term_weight = dict(sorted(term_weight.items(), key = itemgetter(1), reverse = True)[:top_k_terms])
+
+    for term in term_weight:
+        if term in expanded_query:
+            expanded_query[term] = expanded_query[term] + term_weight[term]
+        elif term_weight[term] > 0.0:
+            expanded_query[term] = term_weight[term]
+    return expanded_query
+
+                
+
+
+
+if __name__ == "__main__":
+    '''
     path_inverted_index = "../inverted_indexes.pkl"
     path_doc_lengths = "../doc_lengths.pkl"
     path_documents = "../cord-19_2020-07-16/documents.pkl"
@@ -144,8 +188,9 @@ if __name__ == "__main__":
         query_nr += 1
         if query_nr > 50:
             break
-        
-        '''
+    '''
+
+    '''
         # Sort by score and select the n highest scored documents
         top_n = 20
         top_n_doc_scores = dict(sorted(doc_scores.items(),
@@ -160,7 +205,7 @@ if __name__ == "__main__":
             score_1 = top_n_doc_scores[id_1]
             score_2 = top_n_doc_scores_2[id_2]
             print("#{}: {}[{}] --- {}[{}]".format(i, id_1, score_1, id_2, score_2))
-        '''
+    '''
 
  
     

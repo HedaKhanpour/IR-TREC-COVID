@@ -66,3 +66,21 @@ class SearchSystem():
                                             Constants.results_file_name)
         
         print("Done ranking documents.")
+    
+    def rank_documents_rocchio(self):
+        """Score and rank each document for each query."""
+        
+        # Load the inverted indexes and the document lengths
+        inverted_indexes = load_pickle(Constants.path_inverted_indexes)
+        document_lengths = load_pickle(Constants.path_document_lengths)
+        documents = load_pickle(Constants.path_final_documents)
+        
+        # Rank the documents
+        self.document_ranker.rank_documents_rocchio(inverted_indexes,
+                                            document_lengths,
+                                            documents,
+                                            Constants.path_topics,
+                                            Constants.path_results_dir,
+                                            Constants.results_file_name)
+        
+        print("Done ranking documents.")

@@ -6,7 +6,7 @@ from collections import Counter
 
 class Constants():
     
-    user = "otto"
+    user = "anass"
     if user == "otto":
         path_cord = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/"
         path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
@@ -24,6 +24,23 @@ class Constants():
         path_relevance_judgements = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
         path_results_dir = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/"
         results_file_name = "results"
+    elif user == "anass":
+        path_cord = "../cord-19_2020-07-16/"
+        path_metadata = path_cord + "metadata.csv"
+        
+        path_pickles = "../pickels/"
+        path_linked_documents = path_pickles + "linked_documents.pkl"
+        path_unlinked_documents = path_pickles + "unlinked_documents.pkl"
+        path_parsed_documents = path_pickles + "parsed_documents.pkl"
+        path_final_documents = path_pickles + "final_documents.pkl"
+        
+        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
+        path_document_lengths = path_pickles + "document_lengths.pkl"
+        
+        path_topics = "topics-rnd5.xml"
+        path_relevance_judgements = "trec_eval-master/our_data/CRJ.txt"
+        path_results_dir = "trec_eval-master/our_data/"
+        results_file_name = "results" 
     elif user == "test":
         path_cord = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/"
         path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
@@ -53,7 +70,7 @@ def is_empty(string):
     """Returns true if a string consists of nothing other than whitespaces."""
     return string == None or re.sub("\\s+", "", string) == ""
 
-def clean_title(self, title):
+def clean_title(title):
     """Simplifies a title for more dependable title comparisons."""
     title = re.sub("\n", "", title) # Remove newlines
     title = ' '.join(title.split()) # Turn multiple whitespaces into a single one

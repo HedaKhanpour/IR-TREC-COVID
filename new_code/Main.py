@@ -14,4 +14,4 @@ if __name__ == "__main__":
     #search_system.create_inverted_indexes()
     
     # Rank the stored documents
-    search_system.rank_documents()
+    search_system.rank_documents_rocchio()
