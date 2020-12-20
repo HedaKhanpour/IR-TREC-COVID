@@ -6,6 +6,7 @@ import random
 
 from Util import processQuery
 from Util import Constants
+from rocchio import rocchio
 
 class DocumentRanker():
 
@@ -153,7 +154,7 @@ class DocumentRanker():
                         doc_lengths, path_topics, documents_dict,
                         path_results_dir=r"../trec_eval-master/our_data/",
                         results_file_name="results_rerank"):
-        """Still working on this"""
+        """Still working on this."""
     
         from sentence_transformers import SentenceTransformer, util
         model = SentenceTransformer('distilroberta-base-msmarco-v2')
@@ -171,7 +172,7 @@ class DocumentRanker():
                 
                 passage_embedding = model.encode(text_string)
                 rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
-                doc_scores[cord_uid] = rerank_score
+                doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score ############################@@@@@@@@@@@@@@@@@
                 i += 1
                 if i % 100 == 0:
                     print(f"Reranked {i} documents.")
@@ -219,8 +220,8 @@ class DocumentRanker():
                         doc_lengths, path_topics, documents_dict,
                         path_results_dir=r"../trec_eval-master/our_data/",
                         results_file_name="results_rerank_light"):
-        """Still working on this"""
-        
+        """Still working on this."""
+    
         from sentence_transformers import SentenceTransformer, util
         model = SentenceTransformer('distilroberta-base-msmarco-v2')
         def rerank(query, documents_dict, doc_scores, model):
@@ -236,8 +237,7 @@ class DocumentRanker():
     
                 passage_embedding = model.encode(text_string)
                 rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
-                doc_scores[cord_uid] = rerank_score ######################################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                #doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score ############################@@@@@@@@@@@@@@@@@
+                doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score ## weight? ##########################@@@@@@@@@@@@@@@@@
                 i += 1
                 if i % 99999999 == 0:
                     print(f"Reranked {i} documents.")
@@ -279,4 +279,4 @@ class DocumentRanker():
             # Increment the query number for the next iteration
             query_nr += 1
         
-    # MAYBE USE STEMMED AND CLEANED VERSION
+            # MAYBE USE STEMMED AND CLEANED VERSION

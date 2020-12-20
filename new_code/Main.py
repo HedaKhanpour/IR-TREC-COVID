@@ -20,6 +20,8 @@ if __name__ == "__main__":
     # Rank the stored documents
     #search_system.rank_documents()
 
+    search_system.rank_documents_rocchio()
+    
 # Still working on the stuff below (reranker)
 # =============================================================================
 #     inverted_indexes = load_pickle(Constants.path_inverted_indexes)
@@ -37,4 +39,3 @@ if __name__ == "__main__":
 #                         path_results_dir=r"../trec_eval-master/our_data/",
 #                         results_file_name="results_rerank_light")
 # =============================================================================
-    

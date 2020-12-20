@@ -6,7 +6,7 @@ from collections import Counter
 
 class Constants():
     
-    user = "otto"
+    user = "anass"
     if user == "otto":
         path_cord = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/"
         path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
@@ -34,6 +34,23 @@ class Constants():
         path_document_lengths = path_pickles + "complete_document_lengths.pkl"
         path_inverted_indexes = path_pickles + "complete_inverted_indexes.pkl"
         path_documents_dictionary = path_pickles + "complete_documents_dictionary.pkl"
+    elif user == "anass":
+        path_cord = "../cord-19_2020-07-16/"
+        path_metadata = path_cord + "metadata.csv"
+        
+        path_pickles = "../pickels/"
+        path_linked_documents = path_pickles + "linked_documents.pkl"
+        path_unlinked_documents = path_pickles + "unlinked_documents.pkl"
+        path_parsed_documents = path_pickles + "parsed_documents.pkl"
+        path_final_documents = path_pickles + "final_documents.pkl"
+        
+        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
+        path_document_lengths = path_pickles + "document_lengths.pkl"
+        
+        path_topics = "topics-rnd5.xml"
+        path_relevance_judgements = "trec_eval-master/our_data/CRJ.txt"
+        path_results_dir = "trec_eval-master/our_data/"
+        results_file_name = "results"
         
     
     k = 1.2 # Free BM25 parameter in the range [0, +inf)
