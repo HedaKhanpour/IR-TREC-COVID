@@ -156,7 +156,7 @@ class DocumentRanker():
                                                  doc_lengths)
 
             # Set of relevant documents
-            top_k = 10
+            top_k = 20
             rel_docs = dict()
             for rank in dict(list(doc_scores.items())[:top_k]):
                 rel_docs[rank] = doc_scores[rank]
@@ -168,6 +168,7 @@ class DocumentRanker():
             # Compute the BM25 score for each document for the expanded query
             doc_scores_2 = self.compute_doc_scores(expanded_query, inverted_indexes,
                                                  doc_lengths)
+            '''
             top_n = dict(sorted(doc_scores.items(), key = itemgetter(1), reverse = True)[:10])
             top_n_2 = dict(sorted(doc_scores_2.items(), key = itemgetter(1), reverse = True)[:10])
             for t in top_n:
@@ -175,18 +176,19 @@ class DocumentRanker():
             
             print("----------------------")
             for t in top_n_2:
-                print("{}: {}, {}, doc len: {}".format(t, doc_scores[t], doc_scores_2[t], doc_lengths[t]))
+                print("{}: {}, {}".format(t, doc_scores[t], doc_scores_2[t]))
 
             print(query_terms)
             print("***********************")
             print(expanded_query)
+            '''
             # Write the top 1000 document scores for this query to a .txt file
             self.write_output_file(query_nr, doc_scores, output_file_path)
             self.write_output_file(query_nr, doc_scores_2, output_file_path_2)
             
             # Increment the query number for the next iteration
             query_nr += 1
-            if query_nr > 1:
+            if query_nr > 50:
                 break
     
     
