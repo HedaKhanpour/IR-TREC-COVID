@@ -2,6 +2,7 @@ import re
 import sys
 from math import log
 from operator import itemgetter
+import random
 
 from Util import processQuery
 from Util import Constants
@@ -78,6 +79,35 @@ class DocumentRanker():
                     doc_scores[cord_uid] = score
         
         return doc_scores
+    
+    def rank_at_random(self, path_topics, documents,
+                       path_results_dir=r"../trec_eval-master/our_data/",
+                       results_file_name="results_random"):
+        """Scores and ranks each document for each query at random."""
+        
+        # Retrieve the queries
+        queries = self.extract_queries(path_topics)
+        
+        # The path to the output file
+        output_file_path = path_results_dir + results_file_name + ".txt"
+        
+        # Clear the contents of the output file
+        open(output_file_path, "w").close()
+        
+        query_nr = 1 # Used to keep track of which query is being processed
+        for query in queries: # For each query ...
+            print(f"Processing query {query_nr}: '{query}'")
+            
+            # determine the BM25 score for each document at random
+            doc_scores = dict()
+            for document in documents:
+                doc_scores[document.cord_uid] = random.randint(0, 2)
+            
+            # Write the top 1000 document scores for this query to a .txt file
+            self.write_output_file(query_nr, doc_scores, output_file_path)
+            
+            # Increment the query number for the next iteration
+            query_nr += 1
 
     def rank_documents(self, inverted_indexes,
                         doc_lengths, path_topics,
@@ -119,4 +149,134 @@ class DocumentRanker():
             # Increment the query number for the next iteration
             query_nr += 1
     
+    def rank_with_rerank(self, inverted_indexes,
+                        doc_lengths, path_topics, documents_dict,
+                        path_results_dir=r"../trec_eval-master/our_data/",
+                        results_file_name="results_rerank"):
+        """Still working on this"""
     
+        from sentence_transformers import SentenceTransformer, util
+        model = SentenceTransformer('distilroberta-base-msmarco-v2')
+        def rerank(query, documents_dict, doc_scores, model):
+            
+            
+            query_embedding = model.encode(query)
+            i = 0
+            for cord_uid in doc_scores.keys():
+                document = documents_dict[cord_uid]
+                title = document.title
+                abstract = document.abstract
+                text_sections = document.sections
+                text_string = title + " " + abstract + " " + ' '.join([str(section) for section in text_sections]) 
+                
+                passage_embedding = model.encode(text_string)
+                rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
+                doc_scores[cord_uid] = rerank_score
+                i += 1
+                if i % 100 == 0:
+                    print(f"Reranked {i} documents.")
+        
+        # Retrieve the queries
+        queries = self.extract_queries(path_topics)
+        
+        # The path to the output file
+        output_file_path = path_results_dir + results_file_name + ".txt"
+        
+        # Clear the contents of the output file
+        open(output_file_path, "w").close()
+        
+        query_nr = 1 # Used to keep track of which query is being processed
+        for query in queries: # For each query ...
+            print(f"Processing query {query_nr}: '{query}'")
+            
+            # Transform the query terms to the desired form (i.e. tokenized, stemmed, ...)
+            query_terms = processQuery(query)
+             
+            # Compute the BM25 score for each document for the current query
+            doc_scores = self.compute_doc_scores(query_terms, inverted_indexes,
+                                                 doc_lengths)
+            
+            # Sort by score and select the n highest scored documents
+            doc_scores = dict(sorted(doc_scores.items(),
+                                           key = itemgetter(1), reverse = True)[:1000])################################
+            
+            
+            rerank(query, documents_dict, doc_scores, model)
+            
+            # Sort by score and select the n highest scored documents
+            doc_scores = dict(sorted(doc_scores.items(),
+                                           key = itemgetter(1), reverse = True))################################
+            
+            # Write the top 1000 document scores for this query to a .txt file
+            self.write_output_file(query_nr, doc_scores, output_file_path)
+            
+            # Increment the query number for the next iteration
+            query_nr += 1
+        
+    # MAYBE USE STEMMED AND CLEANED VERSION
+    
+    def rank_with_rerank_light(self, inverted_indexes,
+                        doc_lengths, path_topics, documents_dict,
+                        path_results_dir=r"../trec_eval-master/our_data/",
+                        results_file_name="results_rerank_light"):
+        """Still working on this"""
+        
+        from sentence_transformers import SentenceTransformer, util
+        model = SentenceTransformer('distilroberta-base-msmarco-v2')
+        def rerank(query, documents_dict, doc_scores, model):
+            
+            
+            query_embedding = model.encode(query)
+            i = 0
+            for cord_uid in doc_scores.keys():
+                document = documents_dict[cord_uid]
+                title = document.title
+                abstract = document.abstract
+                text_string = title + " " + abstract
+    
+                passage_embedding = model.encode(text_string)
+                rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
+                doc_scores[cord_uid] = rerank_score ######################################@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                #doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score ############################@@@@@@@@@@@@@@@@@
+                i += 1
+                if i % 99999999 == 0:
+                    print(f"Reranked {i} documents.")
+        
+        # Retrieve the queries
+        queries = self.extract_queries(path_topics)
+        
+        # The path to the output file
+        output_file_path = path_results_dir + results_file_name + ".txt"
+        
+        # Clear the contents of the output file
+        open(output_file_path, "w").close()
+        
+        query_nr = 1 # Used to keep track of which query is being processed
+        for query in queries: # For each query ...
+            print(f"Processing query {query_nr}: '{query}'")
+            
+            # Transform the query terms to the desired form (i.e. tokenized, stemmed, ...)
+            query_terms = processQuery(query)
+             
+            # Compute the BM25 score for each document for the current query
+            doc_scores = self.compute_doc_scores(query_terms, inverted_indexes,
+                                                 doc_lengths)
+            
+            # Sort by score and select the n highest scored documents
+            doc_scores = dict(sorted(doc_scores.items(),
+                                           key = itemgetter(1), reverse = True)[:1000])################################
+            
+            
+            rerank(query, documents_dict, doc_scores, model)
+            
+            # Sort by score and select the n highest scored documents
+            doc_scores = dict(sorted(doc_scores.items(),
+                                           key = itemgetter(1), reverse = True))################################
+            
+            # Write the top 1000 document scores for this query to a .txt file
+            self.write_output_file(query_nr, doc_scores, output_file_path)
+            
+            # Increment the query number for the next iteration
+            query_nr += 1
+        
+    # MAYBE USE STEMMED AND CLEANED VERSION

@@ -90,23 +90,89 @@ def inspect_judgements(output_path=r"trec_eval-master/our_data/test_results.txt"
 # =============================================================================
 
 
+from sentence_transformers import SentenceTransformer, util
+model = SentenceTransformer('distilroberta-base-msmarco-v2')
+
+query_embedding = model.encode('How big is London')
+passage_embedding = model.encode('London has 9,787,426 inhabitants at the 2011 census')
+print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
+
+query_embedding = model.encode('How big is London')
+passage_embedding = model.encode('London has 9,787,426 inhabitants')
+print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
+
+query_embedding = model.encode('How big is London')
+passage_embedding = model.encode('London')
+print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
+
+query_embedding = model.encode('How big is London')
+passage_embedding = model.encode('Paris has 9,787,426 inhabitants')
+print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
+a  = util.pytorch_cos_sim(query_embedding, passage_embedding)
+print(a[0][0].item())
+
+
 # =============================================================================
-# from sentence_transformers import SentenceTransformer, util
-# model = SentenceTransformer('distilroberta-base-msmarco-v2')
-# 
-# query_embedding = model.encode('How big is London')
-# passage_embedding = model.encode('London has 9,787,426 inhabitants at the 2011 census')
-# print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
-# 
-# query_embedding = model.encode('How big is London')
-# passage_embedding = model.encode('London has 9,787,426 inhabitants')
-# print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
-# 
-# query_embedding = model.encode('How big is London')
-# passage_embedding = model.encode('London')
-# print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
-# 
-# query_embedding = model.encode('How big is London')
-# passage_embedding = model.encode('Paris has 9,787,426 inhabitants')
-# print("Similarity:", util.pytorch_cos_sim(query_embedding, passage_embedding))
+# JUDGED STUFF
+# JUDGED STUFF
+# JUDGED STUFF
+# JUDGED STUFF
+# JUDGED STUFF
 # =============================================================================
+
+# =============================================================================
+#     judged_inverted_indexes = load_pickle(Constants.path_judged_inverted_indexes)
+#     judged_doc_lengths = load_pickle(Constants.path_judged_document_lengths)
+#     search_system.document_ranker.rank_documents(judged_inverted_indexes,
+#                                                  judged_doc_lengths,
+#                                                  Constants.path_topics, 
+#                                                  results_file_name="results_judged")
+#     del judged_inverted_indexes
+#     del judged_doc_lengths
+# =============================================================================
+    
+    
+# =============================================================================
+#     judged_documents = load_pickle(Constants.path_judged_documents)
+#     judged_document_lengths = load_pickle(Constants.path_judged_document_lengths)
+#     Util.compute_document_statistics(judged_documents, judged_document_lengths,
+#                                      Constants.path_relevance_judgements)
+#     del judged_documents
+#     del judged_document_lengths
+# =============================================================================
+from Util import load_pickle
+inverted_indexes = load_pickle(Constants.path_inverted_indexes)
+doc_lengths = load_pickle(Constants.path_document_lengths)
+documents_dict = load_pickle(Constants.path_doc_dict)
+
+search_system.document_ranker.rank_with_rerank_light(inverted_indexes,
+                    doc_lengths, Constants.path_topics, documents_dict,
+                    path_results_dir=r"../trec_eval-master/our_data/",
+                    results_file_name="results_rerank")
+
+
+def filter_judged_documents(self, path_final_documents, 
+                            path_relevance_judgements,
+                            path_judged_documents):
+    
+    judged_cord_uids = set()
+    with open(path_relevance_judgements, 'r') as f:
+        for line in f:
+            judged_cord_uid = line.split(" ")[2]
+            judged_cord_uids.add(judged_cord_uid)
+    print(f"Retrieved {len(judged_cord_uids)} cord_uids of judged documents.")
+    
+    final_documents = load_pickle(path_final_documents)
+    judged_documents = []
+    for document in final_documents:
+        if document.cord_uid in judged_cord_uids:
+            judged_documents.append(document)
+    print(f"Filtered {len(judged_documents)} judged documents.")
+    
+    save_pickle(judged_documents, path_judged_documents)
+
+
+        
+path_judged_documents = path_pickles + "judged_documents.pkl"
+path_judged_inverted_indexes = path_pickles + "judged_inverted_indexes.pkl"
+path_judged_document_lengths = path_pickles + "judged_document_lengths.pkl"

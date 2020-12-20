@@ -15,45 +15,48 @@ class Constants():
         path_linked_documents = path_pickles + "linked_documents.pkl"
         path_unlinked_documents = path_pickles + "unlinked_documents.pkl"
         path_parsed_documents = path_pickles + "parsed_documents.pkl"
-        path_final_documents = path_pickles + "final_documents.pkl"
-        
-        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
-        path_document_lengths = path_pickles + "document_lengths.pkl"
+        path_final_documents = path_pickles + "final_documents.pkl" # Deprecated!
         
         path_topics = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/topics-rnd5.xml"
         path_relevance_judgements = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
         path_results_dir = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/"
         results_file_name = "results"
-    elif user == "test":
-        path_cord = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/"
-        path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
         
-        path_pickles = r"C:/Users/Grotto/Downloads/main_test/"
-        path_linked_documents = path_pickles + "linked_documents.pkl"
-        path_unlinked_documents = path_pickles + "unlinked_documents.pkl"
-        path_parsed_documents = path_pickles + "parsed_documents.pkl"
-        path_final_documents = path_pickles + "final_documents.pkl"
+        path_all_documents = path_pickles + "all_documents.pkl"
+        path_all_document_lengths = path_pickles + "all_document_lengths.pkl"
+        path_all_inverted_indexes = path_pickles + "all_inverted_indexes.pkl"
         
-        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
-        path_document_lengths = path_pickles + "document_lengths.pkl"
+        path_linked_cord_uids = path_pickles + "linked_cord_uids.pkl"
+        path_merged_documents = path_pickles + "merged_documents.pkl"
         
-        path_topics = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/topics-rnd5.xml"
-        path_relevance_judgements = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
-        path_results_dir = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/"
-        results_file_name = "results"
+        # This is the data that will be used to rank documents
+        path_documents = path_pickles + "complete_documents.pkl"
+        path_document_lengths = path_pickles + "complete_document_lengths.pkl"
+        path_inverted_indexes = path_pickles + "complete_inverted_indexes.pkl"
+        path_documents_dictionary = path_pickles + "complete_documents_dictionary.pkl"
         
     
     k = 1.2 # Free BM25 parameter in the range [0, +inf)
     b = 0.7 # Free BM25 parameter in the range [0, 1]
     
-    doc_count = 99499 # The total number of final documents
-    avg_doc_length = 2448.442738117971 # The average final document length
+    # Statistic regarding the complete documents set
+    doc_count = 191175 # The total number of complete documents
+    avg_doc_length = 1231.9501399241533 # The average complete document length
+
+        
+def create_document_dictionary(documents):
+    """Returns a document dictionary with cord_uids as keys."""
+    
+    document_dictionary = dict()
+    for document in documents:
+        document_dictionary[document.cord_uid] = document
+    return document_dictionary
 
 def is_empty(string):
     """Returns true if a string consists of nothing other than whitespaces."""
     return string == None or re.sub("\\s+", "", string) == ""
 
-def clean_title(self, title):
+def clean_title(title):
     """Simplifies a title for more dependable title comparisons."""
     title = re.sub("\n", "", title) # Remove newlines
     title = ' '.join(title.split()) # Turn multiple whitespaces into a single one
