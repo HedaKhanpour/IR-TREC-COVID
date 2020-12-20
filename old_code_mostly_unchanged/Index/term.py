@@ -1,4 +1,4 @@
-from Index.index import Index
+from old_code_mostly_unchanged.Index.index import Index
 import sys
 
 def processQuery(query):
