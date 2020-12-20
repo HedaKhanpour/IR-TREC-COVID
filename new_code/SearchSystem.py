@@ -79,7 +79,7 @@ class SearchSystem():
         # Load the inverted indexes and the document lengths
         inverted_indexes = load_pickle(Constants.path_inverted_indexes)
         document_lengths = load_pickle(Constants.path_document_lengths)
-        documents = load_pickle(Constants.path_final_documents)
+        documents = load_pickle(Constants.path_documents)
         
         # Rank the documents
         self.document_ranker.rank_documents_rocchio(inverted_indexes,

@@ -44,9 +44,14 @@ class Constants():
         path_parsed_documents = path_pickles + "parsed_documents.pkl"
         path_final_documents = path_pickles + "final_documents.pkl"
         
-        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
-        path_document_lengths = path_pickles + "document_lengths.pkl"
+        #path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
+        #path_document_lengths = path_pickles + "document_lengths.pkl"
         
+        path_documents = path_pickles + "complete_documents.pkl"
+        path_document_lengths = path_pickles + "complete_document_lengths.pkl"
+        path_inverted_indexes = path_pickles + "complete_inverted_indexes.pkl"
+        path_documents_dictionary = path_pickles + "complete_documents_dictionary.pkl"
+
         path_topics = "topics-rnd5.xml"
         path_relevance_judgements = "trec_eval-master/our_data/CRJ.txt"
         path_results_dir = "trec_eval-master/our_data/"
