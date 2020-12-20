@@ -19,16 +19,18 @@ class SearchSystem():
         self.document_ranker = DocumentRanker()
         
     def gather_documents(self):
-        """Gather all types of documents"""
-        self.document_gatherer.gather_and_save_all(Constants.path_cord, 
+        """Perform every gathering function of the document gatherer and save the results."""
+        self.document_gatherer.gather_and_save_everything(Constants.path_cord, 
                                                    Constants.path_metadata, 
                                                    Constants.path_linked_documents,
                                                    Constants.path_unlinked_documents,
-                                                   Constants.path_parsed_documents)
+                                                   Constants.path_parsed_documents,
+                                                   Constants.path_all_documents)
         
         print("Done gathering documents.")
     
     def process_documents(self):
+        """Deprecated!"""
         self.document_processor.process_documents(Constants.path_linked_documents, 
                                                   Constants.path_unlinked_documents,
                                                   Constants.path_parsed_documents,
@@ -37,10 +39,13 @@ class SearchSystem():
         print("Done processing documents.")
     
     def create_inverted_indexes(self):
-        """Create inverted indexes and determine the length of each document."""
+        """
+        For the complete documents: create inverted indexes and determine the
+        length of each document.
+        """
         
         # Load the documents
-        documents = load_pickle(Constants.path_final_documents)
+        documents = load_pickle(Constants.path_documents)
         
         # Create the inverted indexes
         inverted_indexes, document_lengths = self.index_creator.create_inverted_indexes(documents)
@@ -49,7 +54,7 @@ class SearchSystem():
         save_pickle(inverted_indexes, Constants.path_inverted_indexes)
         save_pickle(document_lengths, Constants.path_document_lengths)
         
-        print("Done creating inverted indexes.")
+        print("Done creating inverted indexes for the complete documents.")
     
     def rank_documents(self):
         """Score and rank each document for each query."""
@@ -64,6 +69,7 @@ class SearchSystem():
                                             Constants.path_topics,
                                             Constants.path_results_dir,
                                             Constants.results_file_name)
+        del inverted_indexes, document_lengths
         
         print("Done ranking documents.")
     
@@ -82,5 +88,5 @@ class SearchSystem():
                                             Constants.path_topics,
                                             Constants.path_results_dir,
                                             Constants.results_file_name)
-        
         print("Done ranking documents.")
+        del inverted_indexes, document_lengths, documents
