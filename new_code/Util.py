@@ -74,10 +74,6 @@ class Constants():
         path_relevance_judgements = r"C:/Users/hedak/PycharmProjects/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
         path_results_dir = r"C:/Users/hedak/PycharmProjects/IR-TREC-COVID/trec_eval-master/our_data/"
         results_file_name = "results_bm25f"
-        
-    
-    k = 1.2 # Free BM25 parameter in the range [0, +inf)
-    b = 0.7 # Free BM25 parameter in the range [0, 1]
     
     weight_title = 0.3
     weight_author = 0.0
@@ -98,13 +94,15 @@ class Constants():
     # Statistic regarding the complete documents set
     doc_count = 191175 # The total number of complete documents
     avg_doc_length = 1231.9501399241533 # The average complete document length
+    
+    rerank_multiplier = 8
 
 class ParametersBM25():
     """Used to pass the parameters of the BM25 algorithm."""
     
     def __init__(self, k=5.0, b=0.8):
-        self.k = k
-        self.b = b
+        self.k = k # Free BM25 parameter in the range [0, +inf)
+        self.b = b # Free BM25 parameter in the range [0, 1]
     
     def print_parameters(self):
         print(f"\n\n\nParameters BM25: k={self.k}, b={self.b}\n")

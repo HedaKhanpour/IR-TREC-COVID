@@ -25,9 +25,9 @@ if __name__ == "__main__":
     #search_system.rank_documents_BM25F()
     
     # Rank the stored documents then rerank them
-    #search_system.rank_documents_with_reranker()
+    search_system.rank_documents_with_reranker()
     
     # Rank the stored documents with BM25F then rerank them
-    search_system.rank_documents_BM25F_with_reranker()
+    #search_system.rank_documents_BM25F_with_reranker()
 
     #search_system.rank_documents_rocchio()

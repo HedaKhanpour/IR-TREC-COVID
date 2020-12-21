@@ -279,7 +279,7 @@ class DocumentRanker():
     
                 passage_embedding = model.encode(text_string)
                 rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
-                doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score
+                doc_scores[cord_uid] = doc_scores[cord_uid] + Constants.rerank_multiplier * rerank_score
         
         model = SentenceTransformer('distilroberta-base-msmarco-v2')
         
@@ -346,8 +346,8 @@ class DocumentRanker():
     
                 passage_embedding = model.encode(text_string)
                 rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
-                doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score
-        
+                doc_scores[cord_uid] = doc_scores[cord_uid] +  Constants.rerank_multiplier * rerank_score
+                
         model = SentenceTransformer('distilroberta-base-msmarco-v2')
         
         # Retrieve the queries
