@@ -49,13 +49,32 @@ class Constants():
         path_parsed_documents = path_pickles + "parsed_documents.pkl"
         path_final_documents = path_pickles + "final_documents.pkl"
         
-        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
-        path_document_lengths = path_pickles + "document_lengths.pkl"
-        
-        path_topics = "topics-rnd5.xml"
+        #path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
+        #path_document_lengths = path_pickles + "document_lengths.pkl"
+
+        path_topics = "trec_eval-master/our_data/topics-rnd5.xml"
         path_relevance_judgements = "trec_eval-master/our_data/CRJ.txt"
         path_results_dir = "trec_eval-master/our_data/"
         results_file_name = "results"
+    elif user == "heda":
+        path_cord = r"C:/Users/hedak/Downloads/2020-07-16/"
+        path_metadata = path_cord + "metadata.csv"
+
+        path_pickles = r"C:/Users/hedak/Downloads/"
+        path_linked_documents = path_pickles + "linked_documents.pkl"
+        path_unlinked_documents = path_pickles + "unlinked_documents.pkl"
+        path_parsed_documents = path_pickles + "parsed_documents.pkl"
+        path_final_documents = path_pickles + "complete_documents.pkl"
+
+        path_inverted_indexes = path_pickles + "complete_inverted_indexes.pkl"
+        path_document_lengths = path_pickles + "complete_document_lengths.pkl"
+        path_document_length_info_bm25f = path_pickles + "doc_length_info_bm25f.pkl"
+        path_inverted_indexes_bm25f = path_pickles + "inverted_indexes_bm25f.pkl"
+
+        path_topics = r"C:/Users/hedak/Downloads/topics-rnd5.xml"
+        path_relevance_judgements = r"C:/Users/hedak/PycharmProjects/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
+        path_results_dir = r"C:/Users/hedak/PycharmProjects/IR-TREC-COVID/trec_eval-master/our_data/"
+        results_file_name = "results_bm25f"
         
     
     k = 1.2 # Free BM25 parameter in the range [0, +inf)

@@ -1,5 +1,6 @@
-from Rank.rank import Rank
-from Index.term import *
+from old_code_mostly_unchanged.Index.index import Index
+from old_code_mostly_unchanged.Rank.rank import Rank
+from old_code_mostly_unchanged.Index.term import *
 from operator import itemgetter
 
 
