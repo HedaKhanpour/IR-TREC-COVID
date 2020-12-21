@@ -80,20 +80,40 @@ class SearchSystem():
         # Load the inverted indexes and the document lengths
         inverted_indexes = load_pickle(Constants.path_inverted_indexes)
         document_lengths = load_pickle(Constants.path_document_lengths)
-        document_lengths_bm25f = load_pickle(Constants.path_document_length_info_bm25f)
-        inverted_indexes_bm25f = load_pickle(Constants.path_inverted_indexes_bm25f)
         
         # Rank the documents
         self.document_ranker.rank_documents(inverted_indexes,
                                             document_lengths,
-                                            document_lengths_bm25f,
-                                            inverted_indexes_bm25f,
                                             Constants.path_topics,
                                             Constants.path_results_dir,
                                             Constants.results_file_name)
         del inverted_indexes, document_lengths
         
         print("Done ranking documents.")
+        
+    
+    def rank_documents_BM25F(self):
+        """Score and rank each document for each query."""
+        
+        # Load the inverted indexes and the document lengths
+        inverted_indexes_bm25f = load_pickle(Constants.path_inverted_indexes_bm25f)
+        doc_length_info_bm25f = load_pickle(Constants.path_doc_length_info_bm25f)
+        
+# =============================================================================
+#         inverted_indexes_bm25f = load_pickle('ii_small')
+#         doc_length_info_bm25f = load_pickle('dli_small')
+# =============================================================================
+        
+        # Rank the documents
+        self.document_ranker.rank_documents_bm25f(inverted_indexes_bm25f,
+                                                  doc_length_info_bm25f,
+                                                  Constants.path_topics,
+                                                  Constants.path_results_dir,
+                                                  "results_BM25F")
+        del inverted_indexes_bm25f, doc_length_info_bm25f
+        
+        print("Done ranking documents.")
+    
     
     def rank_documents_with_reranker(self):
         """Score and rank each document for each query, then rerank them."""
@@ -108,6 +128,21 @@ class SearchSystem():
                                                 documents_dictionary,
                                                 Constants.path_results_dir,
                                                 Constants.results_rerank_file_name)
+    
+    def rank_documents_BM25F_with_reranker(self):
+        """Score and rank each document for each query with BM25F, then rerank them."""
+        
+        # Load the required data
+        inverted_indexes_bm25f = load_pickle(Constants.path_inverted_indexes_bm25f)
+        doc_length_info_bm25f = load_pickle(Constants.path_doc_length_info_bm25f)
+        documents_dictionary = load_pickle(Constants.path_documents_dictionary)
+        
+        self.document_ranker.rank_BM25F_with_reranker(inverted_indexes_bm25f,
+                                                                doc_length_info_bm25f,
+                                                                Constants.path_topics, 
+                                                                documents_dictionary, 
+                                                                Constants.path_results_dir,
+                                                                results_file_name="results__BM25F_rerank")
     
     def rank_documents_rocchio(self):
         """Score and rank each document for each query."""

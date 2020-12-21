@@ -38,7 +38,6 @@ class Constants():
         
         path_inverted_indexes_bm25f = path_pickles + "inverted_indexes_bm25f.pkl"
         path_doc_length_info_bm25f = path_pickles + "doc_length_info_bm25f.pkl"
-        
     elif user == "anass":
         path_cord = "../cord-19_2020-07-16/"
         path_metadata = path_cord + "metadata.csv"
@@ -79,6 +78,22 @@ class Constants():
     
     k = 1.2 # Free BM25 parameter in the range [0, +inf)
     b = 0.7 # Free BM25 parameter in the range [0, 1]
+    
+    weight_title = 0.3
+    weight_author = 0.0
+    weight_abstract = 0.6
+    weight_sections = 0.1
+    
+    b_title = 0.7 # Free BM25F parameter in the range [0, 1]
+    b_author = 0.7 # Free BM25F parameter in the range [0, 1]
+    b_abstract = 0.7 # Free BM25F parameter in the range [0, 1]
+    b_sections = 0.7 # Free BM25F parameter in the range [0, 1]
+    
+    avg_author_length =12.910542696482281
+    avg_sections_length = 1213.091026546358
+    avg_title_length = 9.355851968092063
+    avg_abstract_length = 89.43707597750752
+    avg_total_length = 1324.79449718844
     
     # Statistic regarding the complete documents set
     doc_count = 191175 # The total number of complete documents

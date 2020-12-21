@@ -20,10 +20,13 @@ if __name__ == "__main__":
     # Rank the stored documents
     #search_system.rank_documents()
     
+    # Rank the stored documents
+    #search_system.rank_documents_BM25F()
+    
     # Rank the stored documents then rerank them
-    #search_system.rank_documents_with_reranker()
+    search_system.rank_documents_with_reranker()
+    
+    # Rank the stored documents then rerank them
+    #search_system.rank_documents_BM25F_with_reranker()
 
     #search_system.rank_documents_rocchio()
-
-
-    #Util.print_bm25_field_length_info('doc_length_info_bm25f.pkl') # average total doesnt match up with 'complete_document_lengths' ??????????????

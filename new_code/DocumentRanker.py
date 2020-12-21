@@ -52,6 +52,70 @@ class DocumentRanker():
 
         return score
     
+    def compute_doc_scores_BM25F(self, query_terms, inverted_indexes,
+                           doc_length_info_bm25f):
+        """Compute the BM25 score for each document given a query."""
+        
+        doc_scores = dict() # This is to contain each document's score
+        for term in query_terms: # For each query term ...
+            
+            # Retrieve information regarding the current term
+            term_info = inverted_indexes[term]
+            n_docs_containing_term = len(term_info)
+            
+            # For each document that contains the term ...
+            for cord_uid in term_info.keys():
+                
+                tf_field_dict = term_info[cord_uid]
+                length_info = doc_length_info_bm25f[cord_uid]
+                
+                # Compute document's score for this term
+                score = self.compute_term_BM25F(term, tf_field_dict, n_docs_containing_term, Constants.doc_count,
+                          Constants.k, Constants.b, 
+                          Constants.b_title, Constants.b_author, Constants.b_abstract, Constants.b_sections,
+                          Constants.weight_title, Constants.weight_author, Constants.weight_abstract, Constants.weight_sections, 
+                          length_info,
+                          Constants.avg_title_length, Constants.avg_author_length, Constants.avg_abstract_length, Constants.avg_sections_length)
+                
+                # Store or increment the score
+                if cord_uid in doc_scores:
+                    doc_scores[cord_uid] += score
+                else:
+                    doc_scores[cord_uid] = score
+        
+        return doc_scores
+
+    def compute_term_BM25F(self, term, tf_field_dict, docs_containing_term_count, doc_count,
+                          k, b, 
+                          b_title, b_author, b_abstract, b_sections,
+                          weight_title, weight_author, weight_abstract, weight_sections, 
+                          length_info,
+                          avg_title_length, avg_author_length, avg_abstract_length, avg_sections_length):
+        """Compute the BM25 score for a document regarding a single query term."""
+        
+        tf_title = tf_field_dict['title']
+        tf_author = tf_field_dict['author']
+        tf_abstract = tf_field_dict['abstract']
+        tf_sections = tf_field_dict['sections']
+        
+        length_title = length_info['title']
+        length_author = length_info['author']
+        length_abstract = length_info['abstract']
+        length_sections = length_info['sections']
+        
+        title_score = weight_title * tf_title / (1 - b_title + b_title*length_title/avg_title_length)
+        author_score = weight_author * tf_author / (1 - b_author + b_author*length_author/avg_author_length)
+        abstract_score = weight_abstract * tf_abstract / (1 - b_abstract + b_abstract*length_abstract/avg_abstract_length)
+        sections_score = weight_sections * tf_sections / (1 - b_sections + b_sections*length_sections/avg_sections_length)
+        accumulated_score = title_score + author_score + abstract_score + sections_score
+        
+        numerator = (k + 1) * accumulated_score
+        denominator = k + accumulated_score
+        IDF = log((doc_count + 1)/docs_containing_term_count)
+        score = (numerator / denominator) * IDF
+
+        return score
+    
     def compute_doc_scores(self, query_terms, inverted_indexes,
                            doc_lengths):
         """Compute the BM25 score for each document given a query."""
@@ -110,59 +174,10 @@ class DocumentRanker():
             
             # Increment the query number for the next iteration
             query_nr += 1
-
-    def compute_term_BM25F(self, term, fields, tf, docs_containing_term_count, doc_count,
-                           terms_count, average_terms_length, k, b):
-        numerator = (k + 1) * self.compute_weighted_fields(fields, tf, b, terms_count, average_terms_length)
-        denominator = k + self.compute_weighted_fields(fields, tf, b, terms_count, average_terms_length)
-        IDF = log((doc_count + 1)/docs_containing_term_count)
-        score = (numerator / denominator) * IDF
-        return score
-
-    def compute_weighted_fields(self, fields, tf, b, term_count, average_term_count):
-        weighted_fields_score = 0
-        for f in fields:
-            weighted_fields_score += (tf[f] * b[f]) / ((1 - b[f]) + (b[f] * (term_count[f] / average_term_count[f])))
-        return weighted_fields_score
-
-    def compute_improved_doc_scores(self, query_terms, inverted_indexes, constants, doc_lengths_bm25f, inverted_indexes_bm25f):
-        """Compute the BM25F score for each document given a query."""
-
-        doc_scores = dict()  # This is to contain each document's score
-
-        for term in query_terms:  # For each query term ...
-            # Retrieve information regarding the current term
-            term_info = inverted_indexes[term]
-            n_docs_containing_term = len(term_info)
-
-            # For each document that contains the term ...
-            for cord_uid in term_info.keys():
-                tf = term_info[cord_uid]  # Retrieve the term frequency
-                doc_TF = inverted_indexes[term][cord_uid]
-
-                doc_length_bm25f = doc_lengths_bm25f[term][cord_uid]
-                inverted_index_bm25f = inverted_indexes_bm25f[term][cord_uid]
-
-                # Compute document's score for this term
-                score = self.compute_term_BM25F(term, cord_uid, tf, n_docs_containing_term,
-                                           doc_TF, inverted_index_bm25f, doc_length_bm25f[0],
-                                            inverted_index_bm25f[1], constants.k, constants.b)
-
-                # compute_term_BM25F(self, term, fields, tf, docs_containing_term_count, doc_count,
-                #                    terms_count, average_terms_length, k, b):
-
-                # Store or increment the score
-                if cord_uid in doc_scores:
-                    doc_scores[cord_uid] += score
-                else:
-                    doc_scores[cord_uid] = score
-
-        return doc_scores
+        
 
     def rank_documents(self, inverted_indexes,
                         doc_lengths,
-                        doc_lengths_bm25f,
-                        inverted_indexes_bm25f,
                         path_topics,
                         path_results_dir=r"../trec_eval-master/our_data/",
                         results_file_name="results"):
@@ -194,8 +209,40 @@ class DocumentRanker():
             
             # Compute the BM25 score for each document for the current query
             doc_scores = self.compute_doc_scores(query_terms, inverted_indexes,
-                                                doc_lengths, doc_lengths_bm25f,
-                                                inverted_indexes_bm25f)
+                                                doc_lengths)
+            
+            # Write the top 1000 document scores for this query to a .txt file
+            self.write_output_file(query_nr, doc_scores, output_file_path)
+            
+            # Increment the query number for the next iteration
+            query_nr += 1
+    
+    def rank_documents_bm25f(self, inverted_indexes_bm25f,
+                             doc_length_info_bm25f,
+                             path_topics,
+                             path_results_dir=r"../trec_eval-master/our_data/",
+                             results_file_name="results_BM25f"):
+        
+        # Retrieve the queries
+        queries = self.extract_queries(path_topics)
+        
+        # The path to the output file
+        output_file_path = path_results_dir + results_file_name + ".txt"
+        
+        # Clear the contents of the output file
+        open(output_file_path, "w").close()
+        
+        query_nr = 1 # Used to keep track of which query is being processed
+        for query in queries: # For each query ...
+            print(f"Processing query {query_nr}: '{query}'")
+            
+            # Transform the query terms to the desired form (i.e. tokenized, stemmed, ...)
+            query_terms = processQuery(query)
+            
+            # Compute the BM25 score for each document for the current query
+            doc_scores = self.compute_doc_scores_BM25F(query_terms,
+                                                       inverted_indexes_bm25f,
+                                                       doc_length_info_bm25f)
             
             # Write the top 1000 document scores for this query to a .txt file
             self.write_output_file(query_nr, doc_scores, output_file_path)
@@ -222,6 +269,8 @@ class DocumentRanker():
                 rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
                 doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score
         
+        model = SentenceTransformer('distilroberta-base-msmarco-v2')
+        
         # Retrieve the queries
         queries = self.extract_queries(path_topics)
         
@@ -241,6 +290,67 @@ class DocumentRanker():
             # Compute the BM25 score for each document for the current query
             doc_scores = self.compute_doc_scores(query_terms, inverted_indexes,
                                                  doc_lengths)
+            
+            # Sort by score and select the n highest scored documents
+            doc_scores = dict(sorted(doc_scores.items(),
+                                           key = itemgetter(1), reverse = True)[:1000])################################
+            
+            
+            rerank(query, documents_dict, doc_scores, model)
+            
+            # Sort by score and select the n highest scored documents
+            doc_scores = dict(sorted(doc_scores.items(),
+                                           key = itemgetter(1), reverse = True))################################
+            
+            # Write the top 1000 document scores for this query to a .txt file
+            self.write_output_file(query_nr, doc_scores, output_file_path)
+            
+            # Increment the query number for the next iteration
+            query_nr += 1
+            
+            
+    def rank_BM25F_with_reranker(self, inverted_indexes_bm25f,
+                                           doc_length_info_bm25f,
+                                           path_topics, documents_dict, 
+                                           path_results_dir=r"../trec_eval-master/our_data/",
+                                           results_file_name="results__BM25F_rerank"):
+        """Still working on this."""
+        
+        def rerank(query, documents_dict, doc_scores, model):
+            
+            query_embedding = model.encode(query)
+            for cord_uid in doc_scores.keys():
+                document = documents_dict[cord_uid]
+                title = document.title
+                abstract = document.abstract
+                text_string = title + " " + abstract
+    
+                passage_embedding = model.encode(text_string)
+                rerank_score = util.pytorch_cos_sim(query_embedding, passage_embedding)[0][0].item()
+                doc_scores[cord_uid] = doc_scores[cord_uid] + rerank_score
+        
+        model = SentenceTransformer('distilroberta-base-msmarco-v2')
+        
+        # Retrieve the queries
+        queries = self.extract_queries(path_topics)
+        
+        # The path to the output file
+        output_file_path = path_results_dir + results_file_name + ".txt"
+        
+        # Clear the contents of the output file
+        open(output_file_path, "w").close()
+        
+        query_nr = 1 # Used to keep track of which query is being processed
+        for query in queries: # For each query ...
+            print(f"Processing query {query_nr}: '{query}'")
+            
+            # Transform the query terms to the desired form (i.e. tokenized, stemmed, ...)
+            query_terms = processQuery(query)
+             
+            # Compute the BM25 score for each document for the current query
+            doc_scores = self.compute_doc_scores_BM25F(query_terms,
+                                                       inverted_indexes_bm25f,
+                                                       doc_length_info_bm25f)
             
             # Sort by score and select the n highest scored documents
             doc_scores = dict(sorted(doc_scores.items(),
@@ -402,4 +512,3 @@ class DocumentRanker():
                 query_nr += 1
                 if query_nr > 50:
                     break
->>>>>>> 42b776b9d367fc7cd9244200b8d7ba0d06f7bfa8
