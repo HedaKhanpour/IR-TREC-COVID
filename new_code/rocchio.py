@@ -72,7 +72,7 @@ def rocchio_old(query, rel_docs, inverted_index, all_documents,
     return expanded_query
 
 def rocchio(query, rel_docs, inverted_index, all_documents, 
-    alpha=0.5, beta=0.75, gamma=0.25, top_k_terms=4):
+    alpha=0.5, beta=0.75, gamma=0.25, top_k_terms=5):
 
     ## Assigning values to the query 
     expanded_query = dict()
@@ -101,7 +101,7 @@ def rocchio(query, rel_docs, inverted_index, all_documents,
                 rel_docs_containing_term += 1
         
         ## Calculate the IDF of the term for the relevant document set
-        idf = log(len(rel_docs) / rel_docs_containing_term)
+        idf = log(len(all_documents) / rel_docs_containing_term)
         tf_idf = term_weight[term] * idf
         normalized_weight = beta * (1 / len(rel_docs)) * tf_idf
         term_weight[term] = normalized_weight

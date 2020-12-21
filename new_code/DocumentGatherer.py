@@ -202,19 +202,88 @@ class DocumentGatherer():
             
         return documents
     
-    def gather_and_save_all(self, path_cord, path_metadata, 
-                            path_linked_documents, path_unlinked_documents, 
-                            path_parsed_documents):
-        """Gather and store all documents that this class can retrieve."""
+    def get_all_documents(self, path_cord, path_metadata):
+        """Retrieve all documents listed in metadata.csv."""
+        
+        with open(path_metadata, encoding='utf-8') as f:
+            
+            i = 0
+            documents = []
+            reader = csv.DictReader(f)
+            for row in reader:
+                if i > 0 and i % 1000 == 0:
+                    print(f"Encountered {i} documents, {len(documents)}"
+                          + " documents were gathered ...")
+                i += 1
+                
+                # Retrieve the file paths of the document's parses if directly available
+                file_paths = [] # REMAINS EMPTY IF NO TEXT
+                if row['pmc_json_files']:
+                    file_paths = [path_cord+path for path in row['pmc_json_files'].split("; ")]
+                elif row['pdf_json_files']:
+                    file_paths = [path_cord+path for path in row['pdf_json_files'].split("; ")]
+                
+                # Retrieve the full text as a list of text sections
+                text_sections = []
+                for path in file_paths: # For each file path ...
+                    
+                    # Load the file and convert it to a json object
+                    with open(path, "r", encoding="utf-8") as f:
+                        json_obj = json.load(f)
+                    
+                    # Check whether the json object is properly instantiated
+                    if json_obj == None:
+                        return None
+                    
+                    # Retrieve a list of dictionaries which together contain the body text
+                    body_text = json_obj.get("body_text")
+                    
+                    # Check whether the body text is properly instantiated
+                    if body_text == None:
+                        return None
+                    
+                    # Seperate each section of the body text
+                    for item in body_text:
+                        text = item.get("text")
+                        text_sections.append(text)
+                
+                # Retrieve the remaining relevant document information
+                cord_uid = row['cord_uid']
+                title = row['title'].strip("\"")
+                abstract = row['abstract'].strip("\"")
+                if is_empty(row['authors']):
+                    authors = None
+                else:
+                    authors = row['authors'].split(";")
+                
+                # Save the relevant document metadata
+                document = Document(cord_uid, title, abstract, authors, text_sections)
+                documents.append(document)
+        
+            return documents
+    
+    def gather_and_save_everything(self, path_cord, path_metadata,
+                                   path_linked_documents, path_unlinked_documents,
+                                   path_parsed_documents, path_all_documents):
+        """Perform every gathering function of this class and save the results."""
                 
         # Gather and save linked documents
         linked_documents = self.get_linked_documents(path_cord, path_metadata)
         save_pickle(linked_documents, path_linked_documents)
+        del linked_documents
         
         # Gather and save unlinked documents
         unlinked_documents = self.get_unlinked_documents(path_metadata)
         save_pickle(unlinked_documents, path_unlinked_documents)
+        del unlinked_documents
         
         # Gather and save relevant info from pmc and pdf document parses
         parsed_documents = self.get_document_parses(path_cord)
         save_pickle(parsed_documents, path_parsed_documents)
+        del parsed_documents
+        
+        all_documents = self.get_all_documents(path_cord, path_metadata)
+        save_pickle(all_documents, path_all_documents)
+        del all_documents
+        
+        

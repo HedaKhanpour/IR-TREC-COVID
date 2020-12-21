@@ -15,15 +15,25 @@ class Constants():
         path_linked_documents = path_pickles + "linked_documents.pkl"
         path_unlinked_documents = path_pickles + "unlinked_documents.pkl"
         path_parsed_documents = path_pickles + "parsed_documents.pkl"
-        path_final_documents = path_pickles + "final_documents.pkl"
-        
-        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
-        path_document_lengths = path_pickles + "document_lengths.pkl"
+        path_final_documents = path_pickles + "final_documents.pkl" # Deprecated!
         
         path_topics = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/topics-rnd5.xml"
         path_relevance_judgements = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
         path_results_dir = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/"
         results_file_name = "results"
+        
+        path_all_documents = path_pickles + "all_documents.pkl"
+        path_all_document_lengths = path_pickles + "all_document_lengths.pkl"
+        path_all_inverted_indexes = path_pickles + "all_inverted_indexes.pkl"
+        
+        path_linked_cord_uids = path_pickles + "linked_cord_uids.pkl"
+        path_merged_documents = path_pickles + "merged_documents.pkl"
+        
+        # This is the data that will be used to rank documents
+        path_documents = path_pickles + "complete_documents.pkl"
+        path_document_lengths = path_pickles + "complete_document_lengths.pkl"
+        path_inverted_indexes = path_pickles + "complete_inverted_indexes.pkl"
+        path_documents_dictionary = path_pickles + "complete_documents_dictionary.pkl"
     elif user == "anass":
         path_cord = "../cord-19_2020-07-16/"
         path_metadata = path_cord + "metadata.csv"
@@ -34,9 +44,9 @@ class Constants():
         path_parsed_documents = path_pickles + "parsed_documents.pkl"
         path_final_documents = path_pickles + "final_documents.pkl"
         
-        path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
-        path_document_lengths = path_pickles + "document_lengths.pkl"
-        
+        #path_inverted_indexes = path_pickles + "inverted_indexes.pkl"
+        #path_document_lengths = path_pickles + "document_lengths.pkl"
+
         path_topics = "trec_eval-master/our_data/topics-rnd5.xml"
         path_relevance_judgements = "trec_eval-master/our_data/CRJ.txt"
         path_results_dir = "trec_eval-master/our_data/"
@@ -76,14 +86,33 @@ class Constants():
         path_topics = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/topics-rnd5.xml"
         path_relevance_judgements = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
         path_results_dir = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/"
+        
+        path_documents = path_pickles + "complete_documents.pkl"
+        path_document_lengths = path_pickles + "complete_document_lengths.pkl"
+        path_inverted_indexes = path_pickles + "complete_inverted_indexes.pkl"
+        path_documents_dictionary = path_pickles + "complete_documents_dictionary.pkl"
+
+        path_topics = "topics-rnd5.xml"
+        path_relevance_judgements = "trec_eval-master/our_data/CRJ.txt"
+        path_results_dir = "trec_eval-master/our_data/"
         results_file_name = "results"
         
     
     k = 1.2 # Free BM25 parameter in the range [0, +inf)
     b = 0.7 # Free BM25 parameter in the range [0, 1]
     
-    doc_count = 99499 # The total number of final documents
-    avg_doc_length = 2448.442738117971 # The average final document length
+    # Statistic regarding the complete documents set
+    doc_count = 191175 # The total number of complete documents
+    avg_doc_length = 1231.9501399241533 # The average complete document length
+
+        
+def create_document_dictionary(documents):
+    """Returns a document dictionary with cord_uids as keys."""
+    
+    document_dictionary = dict()
+    for document in documents:
+        document_dictionary[document.cord_uid] = document
+    return document_dictionary
 
 def is_empty(string):
     """Returns true if a string consists of nothing other than whitespaces."""
