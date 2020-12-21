@@ -176,3 +176,63 @@ def filter_judged_documents(self, path_final_documents,
 path_judged_documents = path_pickles + "judged_documents.pkl"
 path_judged_inverted_indexes = path_pickles + "judged_inverted_indexes.pkl"
 path_judged_document_lengths = path_pickles + "judged_document_lengths.pkl"
+
+
+
+    
+# =============================================================================
+#         ks = [5.0]
+#         bs = [0.8]
+#         
+#         weights_title = [0.3, 0.5]
+#         weights_author = [0.3, 0.5]
+#         weights_abstract = [0.3, 0.5]
+#         weights_sections = [0.3, 0.5]
+#         
+#         bs_title = [0.8]
+#         bs_author = [0.8]
+#         bs_abstract = [0.8]
+#         bs_sections = [0.8]
+#         
+#         parameters = ParametersBM25F(k=5.0, b=0.8, 
+#                                      weight_title=1.0, weight_author=1.0,
+#                                      weight_abstract=1.0, weight_sections=1.0,
+#                                      b_title=0.8, b_author=0.8, 
+#                                      b_abstract=0.8, b_sections=0.8)
+#         
+#         for k in ks:
+#             for b in bs:
+#                 for weight_title in weights_title:
+#                     for weight_author in weights_author:
+#                         for weight_abstract in weights_abstract:
+#                             for weight_sections in weights_sections:
+#                                 for b_title in bs_title:
+#                                     for b_author in bs_author:
+#                                         for b_abstract in bs_abstract:
+#                                             for b_sections in bs_sections:
+#                                                 parameters = ParametersBM25F(k=k, b=b, 
+#                                                             weight_title=weight_title, weight_author=weight_author,
+#                                                             weight_abstract=weight_abstract, weight_sections=weight_sections,
+#                                                             b_title=b_title, b_author=b_author, 
+#                                                             b_abstract=b_abstract, b_sections=b_sections)
+#                                                 
+#                                                 path_results_dir = Constants.path_results_dir + r"BM25F_parameter_tests/"
+#                                                 
+#                                                 results_file_name = (f"results_BM25F-k={k}-b={b}-weight_titel={weight_title}-weight_author={weight_author}-"
+#                                                       + f"weight_abstract={weight_abstract}-weight_sections={weight_sections}"
+#                                                       + f"-b_title={b_title}-b_author={b_author}-"
+#                                                       + f"b_abstract={b_abstract}-b_sections={b_sections}")
+#                                                 
+#                 
+#                                                 parameters.print_parameters()
+#                                                 
+#                                                 self.document_ranker.rank_documents_bm25f(inverted_indexes_bm25f,
+#                                                   doc_length_info_bm25f,
+#                                                   parameters,
+#                                                   Constants.path_topics,
+#                                                   path_results_dir,
+#                                                   results_file_name)
+#                                                 
+#         
+#         del inverted_indexes_bm25f, doc_length_info_bm25f
+# =============================================================================

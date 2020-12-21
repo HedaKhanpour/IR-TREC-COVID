@@ -2,6 +2,8 @@ from Util import Constants
 from Util import load_pickle
 from Util import save_pickle
 from Util import Index
+from Util import ParametersBM25
+from Util import ParametersBM25F
 from DocumentGatherer import DocumentGatherer
 from DocumentProcessor import DocumentProcessor
 from IndexCreator import IndexCreator
@@ -81,9 +83,12 @@ class SearchSystem():
         inverted_indexes = load_pickle(Constants.path_inverted_indexes)
         document_lengths = load_pickle(Constants.path_document_lengths)
         
+        parameters = ParametersBM25()
+        
         # Rank the documents
         self.document_ranker.rank_documents(inverted_indexes,
                                             document_lengths,
+                                            parameters,
                                             Constants.path_topics,
                                             Constants.path_results_dir,
                                             Constants.results_file_name)
@@ -99,21 +104,18 @@ class SearchSystem():
         inverted_indexes_bm25f = load_pickle(Constants.path_inverted_indexes_bm25f)
         doc_length_info_bm25f = load_pickle(Constants.path_doc_length_info_bm25f)
         
-# =============================================================================
-#         inverted_indexes_bm25f = load_pickle('ii_small')
-#         doc_length_info_bm25f = load_pickle('dli_small')
-# =============================================================================
+        parameters = ParametersBM25F()
         
         # Rank the documents
         self.document_ranker.rank_documents_bm25f(inverted_indexes_bm25f,
                                                   doc_length_info_bm25f,
+                                                  parameters,
                                                   Constants.path_topics,
                                                   Constants.path_results_dir,
                                                   "results_BM25F")
         del inverted_indexes_bm25f, doc_length_info_bm25f
         
         print("Done ranking documents.")
-    
     
     def rank_documents_with_reranker(self):
         """Score and rank each document for each query, then rerank them."""
@@ -123,11 +125,15 @@ class SearchSystem():
         doc_lengths = load_pickle(Constants.path_document_lengths)
         documents_dictionary = load_pickle(Constants.path_documents_dictionary)
         
+        parameters = ParametersBM25()
+        
         self.document_ranker.rank_with_reranker(inverted_indexes, doc_lengths,
-                                                Constants.path_topics,
                                                 documents_dictionary,
+                                                parameters,
+                                                Constants.path_topics,
                                                 Constants.path_results_dir,
                                                 Constants.results_rerank_file_name)
+        del inverted_indexes, doc_lengths, documents_dictionary
     
     def rank_documents_BM25F_with_reranker(self):
         """Score and rank each document for each query with BM25F, then rerank them."""
@@ -137,12 +143,16 @@ class SearchSystem():
         doc_length_info_bm25f = load_pickle(Constants.path_doc_length_info_bm25f)
         documents_dictionary = load_pickle(Constants.path_documents_dictionary)
         
+        parameters = ParametersBM25F()
+        
         self.document_ranker.rank_BM25F_with_reranker(inverted_indexes_bm25f,
                                                                 doc_length_info_bm25f,
-                                                                Constants.path_topics, 
                                                                 documents_dictionary, 
+                                                                parameters,
+                                                                Constants.path_topics, 
                                                                 Constants.path_results_dir,
-                                                                results_file_name="results__BM25F_rerank")
+                                                                results_file_name="results_BM25F_rerank")
+        del inverted_indexes_bm25f, doc_length_info_bm25f, documents_dictionary
     
     def rank_documents_rocchio(self):
         """Score and rank each document for each query."""

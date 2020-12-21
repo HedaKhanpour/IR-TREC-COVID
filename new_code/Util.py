@@ -99,7 +99,42 @@ class Constants():
     doc_count = 191175 # The total number of complete documents
     avg_doc_length = 1231.9501399241533 # The average complete document length
 
-
+class ParametersBM25():
+    """Used to pass the parameters of the BM25 algorithm."""
+    
+    def __init__(self, k=5.0, b=0.8):
+        self.k = k
+        self.b = b
+    
+    def print_parameters(self):
+        print(f"\n\n\nParameters BM25: k={self.k}, b={self.b}\n")
+        
+class ParametersBM25F():
+    """Used to pass the parameters of the BM25F algorithm."""
+    
+    def __init__(self, k=3.0,
+                 weight_title=3.0, weight_author=0.0, weight_abstract=2.0, weight_sections=0.3,
+                 b_title=0.7, b_author=0.8, b_abstract=0.4, b_sections=0.8):
+        self.k = k
+        
+        self.weight_title = weight_title
+        self.weight_author = weight_author
+        self.weight_abstract = weight_abstract
+        self.weight_sections = weight_sections
+        
+        self.b_title = b_title
+        self.b_author = b_author
+        self.b_abstract = b_abstract
+        self.b_sections = b_sections
+    
+    def print_parameters(self):
+        print("\n\n\nParameters BM25F: \n"
+              + f"  k={self.k}, b={self.b}\n  weight_title={self.weight_title}, weight_author={self.weight_author},"
+              + f" weight_abstract={self.weight_abstract}, weight_sections={self.weight_sections}\n"
+              + f"  b_title={self.b_title}, b_author={self.b_author},"
+              + f" b_abstract={self.b_abstract}, b_sections={self.b_sections}\n")
+        
+        
     
 def print_bm25_field_length_info(path_doc_length_info_bm25f):
     """Prints information regarding the (average) number of terms per field."""

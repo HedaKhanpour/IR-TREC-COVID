@@ -41,7 +41,8 @@ class DocumentRanker():
                 f.write(string)
                 doc_rank += 1
 
-    def compute_term_BM25(self, term, tf, docs_containing_term_count, doc_count,
+    def compute_term_BM25(self, term, tf,
+                          docs_containing_term_count, doc_count,
                           avg_doc_length, doc_length, k, b):
         """Compute the BM25 score for a document regarding a single query term."""
 
@@ -52,8 +53,10 @@ class DocumentRanker():
 
         return score
     
-    def compute_doc_scores_BM25F(self, query_terms, inverted_indexes,
-                           doc_length_info_bm25f):
+    def compute_doc_scores_BM25F(self, query_terms, 
+                                 inverted_indexes, 
+                                 doc_length_info_bm25f,
+                                 parameters):
         """Compute the BM25 score for each document given a query."""
         
         doc_scores = dict() # This is to contain each document's score
@@ -71,10 +74,10 @@ class DocumentRanker():
                 
                 # Compute document's score for this term
                 score = self.compute_term_BM25F(term, tf_field_dict, n_docs_containing_term, Constants.doc_count,
-                          Constants.k, Constants.b, 
-                          Constants.b_title, Constants.b_author, Constants.b_abstract, Constants.b_sections,
-                          Constants.weight_title, Constants.weight_author, Constants.weight_abstract, Constants.weight_sections, 
                           length_info,
+                          parameters.k,
+                          parameters.weight_title, parameters.weight_author, parameters.weight_abstract, parameters.weight_sections,
+                          parameters.b_title, parameters.b_author, parameters.b_abstract, parameters.b_sections,
                           Constants.avg_title_length, Constants.avg_author_length, Constants.avg_abstract_length, Constants.avg_sections_length)
                 
                 # Store or increment the score
@@ -86,12 +89,12 @@ class DocumentRanker():
         return doc_scores
 
     def compute_term_BM25F(self, term, tf_field_dict, docs_containing_term_count, doc_count,
-                          k, b, 
-                          b_title, b_author, b_abstract, b_sections,
-                          weight_title, weight_author, weight_abstract, weight_sections, 
-                          length_info,
-                          avg_title_length, avg_author_length, avg_abstract_length, avg_sections_length):
-        """Compute the BM25 score for a document regarding a single query term."""
+                           length_info,
+                           k,
+                           weight_title, weight_author, weight_abstract, weight_sections,
+                           b_title, b_author, b_abstract, b_sections,
+                           avg_title_length, avg_author_length, avg_abstract_length, avg_sections_length):
+        """Compute the BM25F score for a document regarding a single query term."""
         
         tf_title = tf_field_dict['title']
         tf_author = tf_field_dict['author']
@@ -117,7 +120,7 @@ class DocumentRanker():
         return score
     
     def compute_doc_scores(self, query_terms, inverted_indexes,
-                           doc_lengths):
+                           doc_lengths, parameters):
         """Compute the BM25 score for each document given a query."""
         
         doc_scores = dict() # This is to contain each document's score
@@ -136,7 +139,7 @@ class DocumentRanker():
                 score = self.compute_term_BM25(term, tf, n_docs_containing_term,
                                           Constants.doc_count,
                                           Constants.avg_doc_length, doc_length,
-                                          Constants.k, Constants.b)
+                                          parameters.k, parameters.b)
                 
                 # Store or increment the score
                 if cord_uid in doc_scores:
@@ -178,6 +181,7 @@ class DocumentRanker():
 
     def rank_documents(self, inverted_indexes,
                         doc_lengths,
+                        parameters,
                         path_topics,
                         path_results_dir=r"../trec_eval-master/our_data/",
                         results_file_name="results"):
@@ -209,7 +213,7 @@ class DocumentRanker():
             
             # Compute the BM25 score for each document for the current query
             doc_scores = self.compute_doc_scores(query_terms, inverted_indexes,
-                                                doc_lengths)
+                                                doc_lengths, parameters)
             
             # Write the top 1000 document scores for this query to a .txt file
             self.write_output_file(query_nr, doc_scores, output_file_path)
@@ -219,9 +223,10 @@ class DocumentRanker():
     
     def rank_documents_bm25f(self, inverted_indexes_bm25f,
                              doc_length_info_bm25f,
+                             parameters,
                              path_topics,
                              path_results_dir=r"../trec_eval-master/our_data/",
-                             results_file_name="results_BM25f"):
+                             results_file_name="results_BM25F"):
         
         # Retrieve the queries
         queries = self.extract_queries(path_topics)
@@ -242,7 +247,8 @@ class DocumentRanker():
             # Compute the BM25 score for each document for the current query
             doc_scores = self.compute_doc_scores_BM25F(query_terms,
                                                        inverted_indexes_bm25f,
-                                                       doc_length_info_bm25f)
+                                                       doc_length_info_bm25f,
+                                                       parameters)
             
             # Write the top 1000 document scores for this query to a .txt file
             self.write_output_file(query_nr, doc_scores, output_file_path)
@@ -250,11 +256,17 @@ class DocumentRanker():
             # Increment the query number for the next iteration
             query_nr += 1
     
-    def rank_with_reranker(self, inverted_indexes, doc_lengths, path_topics,
-                         documents_dict, 
-                         path_results_dir=r"../trec_eval-master/our_data/",
-                         results_file_name="results_rerank"):
-        """Still working on this."""
+    def rank_with_reranker(self, inverted_indexes, doc_lengths,
+                           documents_dict, parameters, path_topics,
+                           path_results_dir=r"../trec_eval-master/our_data/",
+                           results_file_name="results_rerank"):
+        """
+        Scores and ranks each document for each query, then reranks them.
+        
+        This function first scores each document with BM25, then it reranks
+        the highest scored 1000 of them using a BERT model trained on MS MARCO
+        (real user queries from Bing seach engine).
+        """
         
         def rerank(query, documents_dict, doc_scores, model):
             
@@ -289,18 +301,18 @@ class DocumentRanker():
              
             # Compute the BM25 score for each document for the current query
             doc_scores = self.compute_doc_scores(query_terms, inverted_indexes,
-                                                 doc_lengths)
+                                                 doc_lengths, parameters)
             
             # Sort by score and select the n highest scored documents
             doc_scores = dict(sorted(doc_scores.items(),
-                                           key = itemgetter(1), reverse = True)[:1000])################################
+                                           key = itemgetter(1), reverse = True)[:1000])
             
             
             rerank(query, documents_dict, doc_scores, model)
             
             # Sort by score and select the n highest scored documents
             doc_scores = dict(sorted(doc_scores.items(),
-                                           key = itemgetter(1), reverse = True))################################
+                                           key = itemgetter(1), reverse = True))
             
             # Write the top 1000 document scores for this query to a .txt file
             self.write_output_file(query_nr, doc_scores, output_file_path)
@@ -311,10 +323,17 @@ class DocumentRanker():
             
     def rank_BM25F_with_reranker(self, inverted_indexes_bm25f,
                                            doc_length_info_bm25f,
-                                           path_topics, documents_dict, 
+                                           documents_dict, parameters,
+                                           path_topics, 
                                            path_results_dir=r"../trec_eval-master/our_data/",
                                            results_file_name="results__BM25F_rerank"):
-        """Still working on this."""
+        """
+        Scores and ranks each document for each query with BM24F, then reranks them.
+        
+        This function first scores each document with BM25F, then it reranks
+        the highest scored 1000 of them using a BERT model trained on MS MARCO
+        (real user queries from Bing seach engine).
+        """
         
         def rerank(query, documents_dict, doc_scores, model):
             
@@ -350,18 +369,18 @@ class DocumentRanker():
             # Compute the BM25 score for each document for the current query
             doc_scores = self.compute_doc_scores_BM25F(query_terms,
                                                        inverted_indexes_bm25f,
-                                                       doc_length_info_bm25f)
+                                                       doc_length_info_bm25f, parameters)
             
             # Sort by score and select the n highest scored documents
             doc_scores = dict(sorted(doc_scores.items(),
-                                           key = itemgetter(1), reverse = True)[:1000])################################
+                                           key = itemgetter(1), reverse = True)[:1000])
             
             
             rerank(query, documents_dict, doc_scores, model)
             
             # Sort by score and select the n highest scored documents
             doc_scores = dict(sorted(doc_scores.items(),
-                                           key = itemgetter(1), reverse = True))################################
+                                           key = itemgetter(1), reverse = True))
             
             # Write the top 1000 document scores for this query to a .txt file
             self.write_output_file(query_nr, doc_scores, output_file_path)
