@@ -14,19 +14,11 @@ import pickle
 class Constants():
 
     def __init__(self, path_doc_lengths, k=1.2, b=0.75):
-<<<<<<< HEAD:new_code/doc_scorer.py
-        self.k = k  # Free BM25 parameter in the range [0, +inf)
-        self.b = b  # Free BM25 parameter in the range [0, 1]
-
-        self.doc_count = 84143
-        self.avg_doc_length = 2669.2203629535434
-=======
         self.k = k # Free BM25 parameter in the range [0, +inf)
         self.b = b # Free BM25 parameter in the range [0, 1]
             
         self.doc_count = 99447
         self.avg_doc_length = 2448.7878166259416
->>>>>>> 74096615efde529daa8928fd3e72c4871c4228d8:new_code/outdated/doc_scorer.py
 
 
 def extract_queries(path_topics="../topics-rnd5.xml", nr_of_queries=50):
@@ -188,17 +180,12 @@ if __name__ == "__main__":
     path_dataComplete = r"D:/Universiteit/Master (Large Files)/IR Project/dataComplete/"
     path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
     path_doc_parses = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/document_parses/"
-<<<<<<< HEAD:new_code/doc_scorer.py
-    path_inverted_indexes = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/inverted_indexes.pkl"
-    path_doc_lengths = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/doc_lengths.pkl"
 
     # Load the dictionary containing the length of each document
-=======
     path_inverted_indexes = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/pickle_files/inverted_indexes.pkl"
     path_doc_lengths = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/pickle_files/document_lengths.pkl"
-        
+
     # Load the dictionary containing the inverted indexes
->>>>>>> 74096615efde529daa8928fd3e72c4871c4228d8:new_code/outdated/doc_scorer.py
     with open(path_inverted_indexes, 'rb') as f:
         inverted_indexes = pickle.load(f)
 

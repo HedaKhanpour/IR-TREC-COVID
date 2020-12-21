@@ -57,10 +57,14 @@ class SearchSystem():
         # Load the inverted indexes and the document lengths
         inverted_indexes = load_pickle(Constants.path_inverted_indexes)
         document_lengths = load_pickle(Constants.path_document_lengths)
+        document_lengths_bm25f = load_pickle(Constants.path_document_length_info_bm25f)
+        inverted_indexes_bm25f = load_pickle(Constants.path_inverted_indexes_bm25f)
         
         # Rank the documents
         self.document_ranker.rank_documents(inverted_indexes,
                                             document_lengths,
+                                            document_lengths_bm25f,
+                                            inverted_indexes_bm25f,
                                             Constants.path_topics,
                                             Constants.path_results_dir,
                                             Constants.results_file_name)
@@ -74,10 +78,21 @@ class SearchSystem():
         inverted_indexes = load_pickle(Constants.path_inverted_indexes)
         document_lengths = load_pickle(Constants.path_document_lengths)
         documents = load_pickle(Constants.path_final_documents)
-        
+        document_lengths_bm25f = load_pickle(Constants.path_document_length_info_bm25f)
+        inverted_indexes_bm25f = load_pickle(Constants.path_inverted_indexes_bm25f)
+
         # Rank the documents
-        self.document_ranker.rank_documents_rocchio(inverted_indexes,
+        # self.document_ranker.rank_documents_rocchio(inverted_indexes,
+        #                                                        document_lengths,
+        #                                                        documents,
+        #                                                        Constants.path_topics,
+        #                                                        Constants.path_results_dir,
+        #                                                        Constants.results_file_name)
+
+        self.document_ranker.rank_documents_rocchio_with_bm25f(inverted_indexes,
                                             document_lengths,
+                                            document_lengths_bm25f,
+                                            inverted_indexes_bm25f,
                                             documents,
                                             Constants.path_topics,
                                             Constants.path_results_dir,
