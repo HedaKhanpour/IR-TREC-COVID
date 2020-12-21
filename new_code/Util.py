@@ -6,7 +6,7 @@ from collections import Counter
 
 class Constants():
     
-    user = "anass"
+    user = "otto"
     if user == "otto":
         path_cord = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/"
         path_metadata = r"D:/Universiteit/Master (Large Files)/IR Project/2020-07-16/metadata.csv"
@@ -21,6 +21,7 @@ class Constants():
         path_relevance_judgements = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/CRJ.txt"
         path_results_dir = r"D:/Universiteit/Master (External Repositories)/IR-TREC-COVID/trec_eval-master/our_data/"
         results_file_name = "results"
+        results_rerank_file_name = "results_rerank"
         
         path_all_documents = path_pickles + "all_documents.pkl"
         path_all_document_lengths = path_pickles + "all_document_lengths.pkl"
@@ -34,6 +35,10 @@ class Constants():
         path_document_lengths = path_pickles + "complete_document_lengths.pkl"
         path_inverted_indexes = path_pickles + "complete_inverted_indexes.pkl"
         path_documents_dictionary = path_pickles + "complete_documents_dictionary.pkl"
+        
+        path_inverted_indexes_bm25f = path_pickles + "inverted_indexes_bm25f.pkl"
+        path_doc_length_info_bm25f = path_pickles + "doc_length_info_bm25f.pkl"
+        
     elif user == "anass":
         path_cord = "../cord-19_2020-07-16/"
         path_metadata = path_cord + "metadata.csv"
@@ -60,7 +65,46 @@ class Constants():
     doc_count = 191175 # The total number of complete documents
     avg_doc_length = 1231.9501399241533 # The average complete document length
 
+
+    
+def print_bm25_field_length_info(path_doc_length_info_bm25f):
+    """Prints information regarding the (average) number of terms per field."""
+
+    doc_length_info = load_pickle(path_doc_length_info_bm25f)
+    
+    n_terms_author_total = 0
+    n_terms_sections_total = 0
+    n_terms_title_total = 0
+    n_terms_abstract_total = 0
+    for cord_uid in doc_length_info.keys():
         
+        info = doc_length_info[cord_uid]
+        
+        n_terms_author_total += info['author']
+        n_terms_sections_total += info['sections']
+        n_terms_title_total += info['title']
+        n_terms_abstract_total += info['abstract']
+        
+    n_terms_total = n_terms_author_total + n_terms_sections_total + n_terms_title_total + n_terms_abstract_total
+        
+    print(len(doc_length_info))
+    print(f"n_terms_author_total  = {n_terms_author_total},     average={n_terms_author_total/len(doc_length_info)}")
+    print(f"n_terms_sections_total= {n_terms_sections_total},   average={n_terms_sections_total/len(doc_length_info)}")
+    print(f"n_terms_title_total   = {n_terms_title_total},      average={n_terms_title_total/len(doc_length_info)}")
+    print(f"n_terms_abstract_total= {n_terms_abstract_total},   average={n_terms_abstract_total/len(doc_length_info)}")
+    print(f"n_terms_total         = {n_terms_total},            average={n_terms_total/len(doc_length_info)}")
+                            
+def print_inverted_indexes_BM25F(self, inverted_indexes):
+    for term in inverted_indexes.keys():
+        print(f"\nterm={term}")
+        term_dict = inverted_indexes[term]
+        for cord_uid in term_dict.keys():
+            print(f"  cord_uid={cord_uid}")
+            field_dict = term_dict[cord_uid]
+            for field in field_dict.keys():
+                frequency = field_dict[field]
+                print(f"    field={field} : frequency={frequency}")
+                
 def create_document_dictionary(documents):
     """Returns a document dictionary with cord_uids as keys."""
     
@@ -208,6 +252,45 @@ class TermDict():
 
     def printDict(self):
         print(self.td)
+        
+class term_dict_BM25F():
+    def __init__(self):
+        self.td = dict()
+
+    def clear(self):
+        self.td.clear()
+
+    def is_in(self, term):
+        return term in self.td
+
+    def process_term(self, term, cord_uid, field):
+        if self.is_in(term):
+            self.update_term(term, field)
+        else:
+            self.add_term(term, cord_uid, field)
+
+    def add_term(self, term, cord_uid, field):
+        
+        field_dict = dict()
+        field_dict['author'] = 0
+        field_dict['sections'] = 0
+        field_dict['title'] = 0
+        field_dict['abstract'] = 0
+        
+        field_dict[field] += 1
+        self.td[term] = (cord_uid, field_dict)
+
+    def update_term(self, term, field):
+        self.td[term][1][field] += 1
+
+    def get_keys(self):
+        return self.td.keys()
+
+    def get_value(self, key):
+        return self.td[key]
+
+    def print_dict(self):
+        print(self.td)
 
 class Index():
     def __init__(self):
@@ -244,6 +327,22 @@ class Index():
             else:
                 inverted_indexes[term] = dict()
                 inverted_indexes[term][cord_uid] = docTF
+        return inverted_indexes
+
+    def write_to_Index_BM25F(self, term_dict_bm25f, inverted_indexes):
+        """Add a document's field-specific term frequencies to inverted_indexes."""
+        for term in term_dict_bm25f.get_keys():
+            if (len(term) > 255):
+                continue
+
+            cord_uid = term_dict_bm25f.get_value(term)[0]
+            field_dict = term_dict_bm25f.get_value(term)[1]
+            
+            if term in inverted_indexes:
+                inverted_indexes[term][cord_uid] = field_dict
+            else:
+                inverted_indexes[term] = dict()
+                inverted_indexes[term][cord_uid] = field_dict
         return inverted_indexes
 
     def processDocument(self, rawText, cord_uid, inverted_indexes):

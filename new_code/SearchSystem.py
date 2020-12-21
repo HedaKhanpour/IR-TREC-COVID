@@ -1,6 +1,7 @@
 from Util import Constants
 from Util import load_pickle
 from Util import save_pickle
+from Util import Index
 from DocumentGatherer import DocumentGatherer
 from DocumentProcessor import DocumentProcessor
 from IndexCreator import IndexCreator
@@ -53,8 +54,25 @@ class SearchSystem():
         # Store the inverted indexes and the document lengths
         save_pickle(inverted_indexes, Constants.path_inverted_indexes)
         save_pickle(document_lengths, Constants.path_document_lengths)
+        del inverted_indexes, document_lengths
         
         print("Done creating inverted indexes for the complete documents.")
+    
+    def create_inverted_indexes_bm25f(self):
+        
+        # Load the documents
+        documents = load_pickle(Constants.path_documents)
+        
+        # Create the inverted indexes, also retrieve information on number of terms per field
+        inverted_indexes, doc_length_info = self.index_creator.create_BM25_inverted_indexes(documents)
+        
+        # Save the retrieved information
+        save_pickle(inverted_indexes, 'inverted_indexes_bm25f')
+        save_pickle(doc_length_info, 'doc_length_info_bm25f')
+        del inverted_indexes, doc_length_info
+        
+        print("Done creating inverted indexes for the bm25f algorithm.")
+        
     
     def rank_documents(self):
         """Score and rank each document for each query."""
@@ -72,6 +90,20 @@ class SearchSystem():
         del inverted_indexes, document_lengths
         
         print("Done ranking documents.")
+    
+    def rank_documents_with_reranker(self):
+        """Score and rank each document for each query, then rerank them."""
+        
+        # Load the required data
+        inverted_indexes = load_pickle(Constants.path_inverted_indexes)
+        doc_lengths = load_pickle(Constants.path_document_lengths)
+        documents_dictionary = load_pickle(Constants.path_documents_dictionary)
+        
+        self.document_ranker.rank_with_reranker(inverted_indexes, doc_lengths,
+                                                Constants.path_topics,
+                                                documents_dictionary,
+                                                Constants.path_results_dir,
+                                                Constants.results_rerank_file_name)
     
     def rank_documents_rocchio(self):
         """Score and rank each document for each query."""
